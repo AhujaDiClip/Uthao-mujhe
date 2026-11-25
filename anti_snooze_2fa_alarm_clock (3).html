@@ -1,0 +1,3437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <!-- iPhone 17 Pro & iOS Safari PWA Configuration -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="2FA Alarm">
+    <meta name="theme-color" content="#000000">
+    <!-- Inline SVG iOS Home Screen App Icon (Zero External Dependencies) -->
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%230A0A0C'/%3E%3Crect x='8' y='8' width='164' height='164' rx='34' fill='none' stroke='%23ff6b2b' stroke-width='6'/%3E%3Cpath d='M90 38l44 17v34c0 30-19 52-44 63-25-11-44-33-44-63V55l44-17z' fill='%23ff6b2b' fill-opacity='0.2' stroke='%23ff6b2b' stroke-width='7' stroke-linejoin='round'/%3E%3Cpolyline points='90 68 90 94 108 104' fill='none' stroke='%23FFFFFF' stroke-width='8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+    <title>2FA Alarm — iPhone 17 Pro Anti-Snooze Clock</title>
+
+    <style>
+        /* =====================================================================
+           1. DESIGN TOKENS & iPHONE 17 PRO FINISH THEMES
+           ===================================================================== */
+        :root {
+            --bg-oled: #000000;
+            --surface-1: rgba(24, 24, 27, 0.88);
+            --surface-2: rgba(38, 38, 42, 0.92);
+            --border-subtle: rgba(255, 255, 255, 0.1);
+            --border-strong: rgba(255, 255, 255, 0.18);
+            --text-primary: #FFFFFF;
+            --text-secondary: #98989F;
+            --text-muted: #636366;
+
+            --ios-green: #30D158;
+            --ios-red: #FF453A;
+            --ios-orange: #FF9F0A;
+            --ios-yellow: #FFD60A;
+            --ios-cyan: #32ADE6;
+
+            /* Default Theme: Cosmic Orange */
+            --theme-accent: #ff6b2b;
+            --theme-accent-soft: rgba(255, 107, 43, 0.18);
+            --theme-glow: rgba(255, 107, 43, 0.36);
+            --theme-on-accent: #FFFFFF;
+            --frame-bezel: #8C3B17;
+            --frame-highlight: #E87D4B;
+            --frame-outer: #3B1607;
+            --frame-btn: linear-gradient(180deg, #F28F5E 0%, #8E3A16 50%, #C95E2B 100%);
+
+            --active-accent: var(--theme-accent);
+            --active-on-accent: var(--theme-on-accent);
+            --safe-top: env(safe-area-inset-top, 0px);
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+        }
+
+        body[data-theme="cosmic-orange"] {
+            --theme-accent: #ff6b2b;
+            --theme-accent-soft: rgba(255, 107, 43, 0.18);
+            --theme-glow: rgba(255, 107, 43, 0.38);
+            --theme-on-accent: #FFFFFF;
+            --frame-bezel: #8C3B17;
+            --frame-highlight: #E87D4B;
+            --frame-outer: #3B1607;
+            --frame-btn: linear-gradient(180deg, #F28F5E 0%, #8E3A16 50%, #C95E2B 100%);
+        }
+
+        body[data-theme="deep-blue"] {
+            --theme-accent: #3b6cff;
+            --theme-accent-soft: rgba(59, 108, 255, 0.2);
+            --theme-glow: rgba(59, 108, 255, 0.4);
+            --theme-on-accent: #FFFFFF;
+            --frame-bezel: #1B325E;
+            --frame-highlight: #4E7FFF;
+            --frame-outer: #0B152A;
+            --frame-btn: linear-gradient(180deg, #6490FF 0%, #1C3566 50%, #3A64C4 100%);
+        }
+
+        body[data-theme="silver-titanium"] {
+            --theme-accent: #d8dde6;
+            --theme-accent-soft: rgba(216, 221, 230, 0.18);
+            --theme-glow: rgba(216, 221, 230, 0.28);
+            --theme-on-accent: #09090B;
+            --frame-bezel: #8E95A0;
+            --frame-highlight: #E5EAF2;
+            --frame-outer: #3E434B;
+            --frame-btn: linear-gradient(180deg, #F4F7FB 0%, #8D94A0 50%, #CCD3DE 100%);
+        }
+
+        body[data-theme="desert-titanium"] {
+            --theme-accent: #d4b08c;
+            --theme-accent-soft: rgba(212, 176, 140, 0.2);
+            --theme-glow: rgba(212, 176, 140, 0.34);
+            --theme-on-accent: #140E08;
+            --frame-bezel: #7A5E42;
+            --frame-highlight: #DFC09F;
+            --frame-outer: #332518;
+            --frame-btn: linear-gradient(180deg, #EAD0B3 0%, #7C6044 50%, #C7A17B 100%);
+        }
+
+        body[data-theme="black-titanium"] {
+            --theme-accent: #9aa0aa;
+            --theme-accent-soft: rgba(154, 160, 170, 0.2);
+            --theme-glow: rgba(154, 160, 170, 0.28);
+            --theme-on-accent: #09090B;
+            --frame-bezel: #2C2E33;
+            --frame-highlight: #5E626C;
+            --frame-outer: #101114;
+            --frame-btn: linear-gradient(180deg, #636772 0%, #242529 50%, #454850 100%);
+        }
+
+        body.mode-brutal {
+            --active-accent: #FF453A;
+            --active-on-accent: #FFFFFF;
+        }
+
+        /* =====================================================================
+           2. RESET & BASE LAYOUT (GUARANTEED VISIBLE)
+           ===================================================================== */
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            min-height: 100vh;
+            background: #0B0D12;
+            color: var(--text-primary);
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif;
+            font-variant-numeric: tabular-nums;
+            -webkit-font-smoothing: antialiased;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-user-select: none;
+            user-select: none;
+            overscroll-behavior: none;
+        }
+
+        input[type="time"], input[type="text"] {
+            -webkit-user-select: text;
+            user-select: text;
+            font-family: inherit;
+        }
+
+        button {
+            font-family: inherit;
+            border: none;
+            background: none;
+            color: inherit;
+            cursor: pointer;
+            padding: 0;
+            touch-action: manipulation;
+        }
+
+        button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* =====================================================================
+           3. ADAPTIVE STAGE & iPHONE 17 PRO CHASSIS
+           ===================================================================== */
+        .stage-wrapper {
+            width: 100%;
+            min-height: 100vh;
+            height: 100dvh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at 50% 20%, #171B24 0%, #0A0B0F 65%, #050507 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .iphone-chassis {
+            position: relative;
+            width: 100%;
+            height: 100dvh;
+            min-height: 100vh;
+            background: var(--bg-oled);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .iphone-screen {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-oled);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .hw-btn,
+        .desktop-controls,
+        .home-indicator {
+            display: none;
+        }
+
+        /* Mobile edge-to-edge safe area padding */
+        .app-scroll {
+            flex: 1;
+            overflow-y: auto;
+            padding: calc(var(--safe-top) + 52px) 16px calc(var(--safe-bottom) + 22px) 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* Desktop (>480px): iPhone 17 Pro 402x874 Brushed Titanium Frame */
+        @media (min-width: 481px) {
+            body:not(.desktop-fullscreen) .iphone-chassis {
+                width: 402px;
+                height: min(874px, calc(100vh - 32px));
+                min-height: 580px;
+                border-radius: 56px;
+                border: 7px solid var(--frame-bezel);
+                box-shadow:
+                    0 0 0 2px var(--frame-highlight),
+                    0 0 0 3px var(--frame-outer),
+                    0 32px 90px rgba(0, 0, 0, 0.85),
+                    0 0 50px var(--theme-glow);
+                overflow: visible;
+                transition: border-color 0.35s ease, box-shadow 0.35s ease;
+            }
+
+            body:not(.desktop-fullscreen) .iphone-screen {
+                border-radius: 49px;
+                overflow: hidden;
+            }
+
+            body:not(.desktop-fullscreen) .hw-btn {
+                display: block;
+                position: absolute;
+                background: var(--frame-btn);
+                border-radius: 3px;
+                pointer-events: none;
+                box-shadow: inset 0 0 1px rgba(255, 255, 255, 0.5);
+            }
+            .hw-action { left: -10px; top: 145px; width: 3px; height: 28px; }
+            .hw-vol-up { left: -10px; top: 196px; width: 3px; height: 52px; }
+            .hw-vol-down { left: -10px; top: 262px; width: 3px; height: 52px; }
+            .hw-power { right: -10px; top: 215px; width: 3px; height: 78px; }
+            .hw-camera { right: -9px; top: 530px; width: 2.5px; height: 48px; }
+
+            body:not(.desktop-fullscreen) .home-indicator {
+                display: block;
+                position: absolute;
+                bottom: 8px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 134px;
+                height: 5px;
+                border-radius: 999px;
+                background: rgba(255, 255, 255, 0.32);
+                z-index: 95;
+                pointer-events: none;
+            }
+
+            body:not(.desktop-fullscreen) .app-scroll {
+                padding: 58px 16px 28px 16px;
+            }
+
+            .desktop-controls {
+                display: flex;
+                position: fixed;
+                top: 16px;
+                right: 18px;
+                z-index: 120;
+                gap: 8px;
+            }
+
+            body.desktop-fullscreen .iphone-chassis {
+                width: 100%;
+                max-width: 480px;
+                height: 100dvh;
+                min-height: 100vh;
+                border: none;
+                border-radius: 0;
+                box-shadow: 0 0 60px rgba(0, 0, 0, 0.8);
+            }
+
+            body.desktop-fullscreen .iphone-screen {
+                border-radius: 0;
+            }
+        }
+
+        .desktop-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 9px 14px;
+            border-radius: 999px;
+            background: rgba(28, 28, 32, 0.92);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            color: #F2F2F7;
+            font-size: 12px;
+            font-weight: 600;
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.55);
+            transition: background 0.15s ease, transform 0.1s ease;
+        }
+        .desktop-btn:hover { background: rgba(46, 46, 52, 0.95); }
+        .desktop-btn:active { transform: scale(0.95); }
+
+        /* =====================================================================
+           4. DYNAMIC ISLAND LIVE PILL
+           ===================================================================== */
+        .dynamic-island {
+            position: absolute;
+            top: max(10px, var(--safe-top));
+            left: 50%;
+            transform: translateX(-50%);
+            min-width: 126px;
+            height: 34px;
+            padding: 0 14px;
+            border-radius: 20px;
+            background: #050507;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            z-index: 90;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            white-space: nowrap;
+            transition: all 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .dynamic-island.expanded {
+            min-width: 214px;
+            border-color: var(--active-accent);
+            box-shadow: 0 4px 20px var(--theme-glow);
+        }
+
+        .island-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--text-muted);
+            flex-shrink: 0;
+        }
+        .island-dot.armed { background: var(--ios-green); box-shadow: 0 0 8px var(--ios-green); }
+        .island-dot.brutal { background: var(--ios-red); box-shadow: 0 0 8px var(--ios-red); }
+        .island-dot.ringing { background: var(--ios-red); animation: pulseDot 0.6s infinite alternate; }
+        .island-dot.relapse { background: var(--ios-orange); animation: pulseDot 0.9s infinite alternate; }
+
+        @keyframes pulseDot {
+            from { transform: scale(0.85); opacity: 0.6; }
+            to { transform: scale(1.25); opacity: 1; }
+        }
+
+        /* =====================================================================
+           5. CARDS, HEADERS & CONTROLS
+           ===================================================================== */
+        .ios-card {
+            background: var(--surface-1);
+            border: 1px solid var(--border-subtle);
+            border-radius: 22px;
+            padding: 14px;
+        }
+
+        .row-between {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .section-label {
+            font-size: 10.5px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-secondary);
+        }
+
+        /* Top Action Bar */
+        .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .brand-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+        }
+
+        .brand-badge {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            background: var(--active-accent);
+            color: var(--active-on-accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 4px 14px var(--theme-glow);
+            transition: background 0.25s ease, color 0.25s ease;
+        }
+
+        .brand-title {
+            font-size: 16px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            line-height: 1.1;
+        }
+
+        .brand-sub {
+            font-size: 10.5px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-top: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .action-icons {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            flex-shrink: 0;
+        }
+
+        .pill-btn {
+            min-height: 34px;
+            padding: 0 11px;
+            border-radius: 999px;
+            background: var(--surface-2);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-primary);
+            font-size: 11.5px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            transition: transform 0.1s ease, border-color 0.2s ease;
+        }
+        .pill-btn:active { transform: scale(0.94); }
+
+        .icon-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--surface-2);
+            border: 1px solid var(--border-subtle);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #FFFFFF;
+            transition: transform 0.1s ease, background 0.2s ease, border-color 0.2s ease;
+        }
+        .icon-btn:active { transform: scale(0.92); }
+        .icon-btn.settings-accent {
+            background: var(--theme-accent-soft);
+            border-color: var(--theme-accent);
+            color: var(--theme-accent);
+        }
+
+        /* Relapse Banner */
+        .relapse-banner {
+            background: rgba(255, 69, 58, 0.16);
+            border: 1px solid rgba(255, 69, 58, 0.55);
+            border-radius: 18px;
+            padding: 12px 13px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        /* Digital Clock Card */
+        .clock-card {
+            text-align: center;
+            padding: 18px 14px 14px;
+        }
+
+        .clock-date {
+            font-size: 11.5px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-secondary);
+        }
+
+        .clock-row {
+            margin-top: 4px;
+            display: flex;
+            align-items: baseline;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .clock-hm {
+            font-size: 58px;
+            font-weight: 700;
+            line-height: 1;
+            letter-spacing: -0.03em;
+            text-shadow: 0 0 28px var(--theme-glow);
+            transition: text-shadow 0.3s ease;
+        }
+
+        .clock-meta {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .clock-ampm {
+            font-size: 12px;
+            font-weight: 800;
+            color: var(--active-accent);
+        }
+
+        .clock-sec {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            line-height: 1.1;
+        }
+
+        .clock-status-row {
+            margin-top: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .status-chip {
+            padding: 5px 10px;
+            border-radius: 999px;
+            background: rgba(0, 0, 0, 0.55);
+            border: 1px solid var(--border-subtle);
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-chip.good {
+            background: rgba(48, 209, 88, 0.14);
+            border-color: rgba(48, 209, 88, 0.4);
+            color: var(--ios-green);
+        }
+
+        /* Segmented Control */
+        .ios-segmented {
+            position: relative;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            background: rgba(118, 118, 128, 0.24);
+            padding: 3px;
+            border-radius: 12px;
+            margin-top: 9px;
+        }
+
+        .ios-seg-thumb {
+            position: absolute;
+            top: 3px;
+            bottom: 3px;
+            left: 3px;
+            width: calc(50% - 3px);
+            border-radius: 9px;
+            background: var(--theme-accent);
+            box-shadow: 0 2px 10px var(--theme-glow);
+            transition: transform 0.26s cubic-bezier(0.25, 1, 0.5, 1), background 0.25s ease;
+        }
+
+        .ios-segmented.brutal-active .ios-seg-thumb {
+            transform: translateX(100%);
+            background: var(--ios-red);
+            box-shadow: 0 2px 10px rgba(255, 69, 58, 0.45);
+        }
+
+        .seg-btn {
+            position: relative;
+            z-index: 2;
+            min-height: 36px;
+            font-size: 12.5px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            color: #D1D1D6;
+            transition: color 0.2s ease;
+        }
+
+        .ios-segmented:not(.brutal-active) .seg-normal { color: var(--theme-on-accent); }
+        .ios-segmented.brutal-active .seg-brutal { color: #FFFFFF; }
+
+        .gate-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 7px;
+            margin-top: 10px;
+        }
+
+        .gate-item {
+            font-size: 11px;
+            font-weight: 600;
+            color: #E5E5EA;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Alarm Picker & Action Buttons */
+        .time-row {
+            display: flex;
+            align-items: flex-end;
+            gap: 8px;
+        }
+
+        .ios-input {
+            width: 100%;
+            min-height: 46px;
+            background: rgba(0, 0, 0, 0.72);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-radius: 14px;
+            padding: 0 13px;
+            color: #FFFFFF;
+            font-size: 15px;
+            font-weight: 600;
+            outline: none;
+        }
+        .ios-input:focus { border-color: var(--active-accent); }
+
+        .ios-time-input {
+            font-size: 26px;
+            font-weight: 700;
+            min-height: 52px;
+        }
+        input[type="time"]::-webkit-calendar-picker-indicator {
+            filter: invert(1) opacity(0.7);
+            cursor: pointer;
+        }
+
+        .bump-col {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .bump-btn {
+            min-height: 23px;
+            padding: 0 11px;
+            border-radius: 8px;
+            background: var(--surface-2);
+            border: 1px solid var(--border-subtle);
+            font-size: 11px;
+            font-weight: 700;
+            color: #F2F2F7;
+        }
+        .bump-btn:active { transform: scale(0.92); }
+
+        .btn-primary {
+            width: 100%;
+            min-height: 48px;
+            border-radius: 15px;
+            background: var(--active-accent);
+            color: var(--active-on-accent);
+            font-size: 14px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 6px 20px var(--theme-glow);
+            transition: transform 0.1s ease, background 0.25s ease;
+        }
+        .btn-primary:active { transform: scale(0.97); }
+        .btn-primary.armed {
+            background: var(--ios-red);
+            color: #FFFFFF;
+            box-shadow: 0 6px 20px rgba(255, 69, 58, 0.35);
+        }
+
+        .btn-secondary {
+            width: 100%;
+            min-height: 44px;
+            border-radius: 14px;
+            background: var(--surface-2);
+            border: 1px solid var(--border-subtle);
+            color: #FFFFFF;
+            font-size: 13px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: transform 0.1s ease;
+        }
+        .btn-secondary:active { transform: scale(0.97); }
+
+        /* Compact Stats Bar */
+        .stats-bar {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .stat-tile {
+            background: var(--surface-1);
+            border: 1px solid var(--border-subtle);
+            border-radius: 18px;
+            padding: 11px 13px;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: transform 0.1s ease;
+        }
+        .stat-tile:active { transform: scale(0.97); }
+
+        /* =====================================================================
+           6. TOAST NOTIFICATION
+           ===================================================================== */
+        .ios-toast {
+            position: absolute;
+            top: 52px;
+            left: 16px;
+            right: 16px;
+            z-index: 130;
+            display: flex;
+            justify-content: center;
+            pointer-events: none;
+            opacity: 0;
+            transform: translateY(-12px);
+            transition: opacity 0.24s ease, transform 0.24s ease;
+        }
+        .ios-toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .ios-toast-inner {
+            background: rgba(32, 32, 36, 0.96);
+            border: 1px solid var(--border-strong);
+            border-radius: 15px;
+            padding: 10px 14px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #FFFFFF;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.75);
+        }
+
+        /* =====================================================================
+           7. OVERLAYS & MODALS (ALL START HIDDEN VIA .hidden)
+           ===================================================================== */
+        .overlay-full {
+            position: absolute;
+            inset: 0;
+            z-index: 70;
+            background: #000000;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .sheet-backdrop {
+            position: absolute;
+            inset: 0;
+            z-index: 80;
+            background: rgba(0, 0, 0, 0.72);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+        }
+
+        .ios-sheet {
+            width: 100%;
+            max-height: 88%;
+            overflow-y: auto;
+            background: #161619;
+            border-top: 1px solid var(--border-strong);
+            border-radius: 28px 28px 0 0;
+            padding: 10px 16px calc(var(--safe-bottom) + 24px) 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 13px;
+            animation: slideUp 0.26s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(48px); opacity: 0.5; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .sheet-handle {
+            width: 40px;
+            height: 5px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.24);
+            margin: 0 auto 2px;
+        }
+
+        .settings-box {
+            background: rgba(0, 0, 0, 0.52);
+            border: 1px solid var(--border-subtle);
+            border-radius: 18px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        /* 5 iPhone 17 Pro Swatches */
+        .swatch-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 6px;
+        }
+
+        .swatch-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 2px;
+            border-radius: 14px;
+        }
+        .swatch-btn.active {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .swatch-circle {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.22);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.35), 0 4px 10px rgba(0, 0, 0, 0.5);
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+        .swatch-btn.active .swatch-circle {
+            border-color: #FFFFFF;
+            transform: scale(1.1);
+            box-shadow: 0 0 0 2px var(--theme-accent), 0 4px 12px rgba(0, 0, 0, 0.6);
+        }
+
+        .swatch-check { display: none; }
+        .swatch-btn.active .swatch-check { display: block; }
+
+        .swatch-name {
+            font-size: 9.5px;
+            font-weight: 600;
+            color: #D1D1D6;
+            text-align: center;
+            line-height: 1.15;
+        }
+
+        /* Centered Modal Backdrop (Tour, Summary, Relapse Prompt) */
+        .modal-backdrop {
+            position: absolute;
+            inset: 0;
+            z-index: 88;
+            background: rgba(0, 0, 0, 0.78);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 18px;
+        }
+
+        .modal-card {
+            width: 100%;
+            max-height: 90%;
+            overflow-y: auto;
+            background: #18181C;
+            border: 1px solid var(--border-strong);
+            border-radius: 26px;
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* Feature Tour Preview */
+        .tour-preview {
+            background: rgba(0, 0, 0, 0.65);
+            border: 1px solid var(--border-strong);
+            border-radius: 16px;
+            padding: 14px;
+            min-height: 102px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-align: center;
+        }
+
+        .tour-dots {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .tour-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.22);
+            transition: all 0.22s ease;
+        }
+        .tour-dot.active {
+            width: 22px;
+            background: var(--theme-accent);
+        }
+
+        .wave-bars {
+            display: flex;
+            align-items: flex-end;
+            gap: 4px;
+            height: 28px;
+        }
+        .wave-bars span {
+            width: 5px;
+            border-radius: 999px;
+            background: var(--theme-accent);
+            animation: waveBounce 0.75s ease-in-out infinite alternate;
+        }
+        .wave-bars span:nth-child(2) { animation-delay: 0.15s; background: var(--ios-orange); }
+        .wave-bars span:nth-child(3) { animation-delay: 0.3s; background: var(--ios-red); }
+        .wave-bars span:nth-child(4) { animation-delay: 0.45s; background: var(--ios-green); }
+        .wave-bars span:nth-child(5) { animation-delay: 0.6s; background: var(--ios-cyan); }
+
+        @keyframes waveBounce {
+            from { height: 7px; opacity: 0.55; }
+            to { height: 26px; opacity: 1; }
+        }
+
+        /* =====================================================================
+           8. GAUNTLET CHALLENGES & CUSTOM iOS CIRCULAR KEYPAD
+           ===================================================================== */
+        .gauntlet-header {
+            padding: calc(var(--safe-top) + 52px) 16px 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .step-bars {
+            display: flex;
+            gap: 6px;
+            padding: 0 16px 10px;
+        }
+        .step-bar {
+            height: 5px;
+            flex: 1;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.14);
+        }
+        .step-bar.done { background: var(--ios-green); }
+        .step-bar.active { background: var(--active-accent); }
+
+        .gauntlet-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 16px calc(var(--safe-bottom) + 22px);
+            display: flex;
+            flex-direction: column;
+            gap: 11px;
+        }
+
+        .snooze-btn {
+            min-height: 36px;
+            padding: 0 13px;
+            border-radius: 999px;
+            background: var(--ios-orange);
+            color: #000000;
+            font-size: 12px;
+            font-weight: 800;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            box-shadow: 0 6px 16px rgba(255, 159, 10, 0.38);
+            transition: left 0.14s ease, top 0.14s ease;
+        }
+
+        /* Camera Box */
+        .cam-box {
+            position: relative;
+            width: 100%;
+            height: 156px;
+            border-radius: 16px;
+            overflow: hidden;
+            background: #0C0C0E;
+            border: 1px solid var(--border-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .cam-box video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .cam-hud {
+            position: absolute;
+            left: 8px;
+            right: 8px;
+            bottom: 8px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid var(--border-subtle);
+            border-radius: 11px;
+            padding: 7px 10px;
+        }
+        .progress-track {
+            width: 100%;
+            height: 6px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.15);
+            overflow: hidden;
+            margin-top: 5px;
+        }
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: var(--ios-yellow);
+            transition: width 0.2s ease, background 0.2s ease;
+        }
+
+        /* Voice Chips */
+        .word-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 7px;
+            justify-content: center;
+        }
+        .word-chip {
+            min-height: 34px;
+            padding: 0 11px;
+            border-radius: 10px;
+            background: var(--surface-2);
+            border: 1px solid var(--border-subtle);
+            color: #FFFFFF;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .word-chip.used {
+            opacity: 0.3;
+            border-color: var(--ios-green);
+        }
+
+        /* Custom Circular iOS Numeric Keypad */
+        .keypad-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 9px;
+            margin-top: auto;
+        }
+        .keypad-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            column-gap: 18px;
+            row-gap: 9px;
+        }
+        .ios-key {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: rgba(58, 58, 62, 0.78);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: #FFFFFF;
+            font-size: 26px;
+            font-weight: 400;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.08s ease, background 0.12s ease;
+        }
+        .ios-key:active {
+            transform: scale(0.92);
+            background: rgba(110, 110, 118, 0.85);
+        }
+        .ios-key.fn {
+            font-size: 13px;
+            font-weight: 700;
+            background: rgba(34, 34, 38, 0.85);
+            color: #D1D1D6;
+        }
+
+        /* 2FA Hold-to-Reveal Ring & Slots */
+        .otp-code {
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: 0.18em;
+            color: var(--ios-green);
+            transition: filter 0.2s ease;
+        }
+        .otp-code.blurred {
+            filter: blur(11px);
+            opacity: 0.55;
+        }
+
+        .hold-ring-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            min-height: 48px;
+            padding: 6px 14px;
+            border-radius: 14px;
+            background: rgba(50, 173, 230, 0.14);
+            border: 1px solid rgba(50, 173, 230, 0.45);
+            color: #FFFFFF;
+            font-size: 12.5px;
+            font-weight: 700;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+            touch-action: none;
+        }
+
+        .otp-slots {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 6px;
+        }
+        .otp-slot {
+            height: 42px;
+            border-radius: 11px;
+            background: rgba(0, 0, 0, 0.78);
+            border: 1.5px solid rgba(255, 255, 255, 0.16);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 800;
+            color: #FFFFFF;
+        }
+        .otp-slot.filled {
+            border-color: var(--ios-cyan);
+            background: rgba(50, 173, 230, 0.12);
+        }
+
+        .animate-shake {
+            animation: shakeX 0.34s ease;
+        }
+        @keyframes shakeX {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-7px); }
+            75% { transform: translateX(7px); }
+        }
+
+        /* Quick Test 2-Column Row */
+        .quick-test-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        /* iOS Shortcuts Bridge URL Rows & Steps */
+        .url-row {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 7px 8px 7px 10px;
+        }
+
+        .url-code {
+            flex: 1;
+            min-width: 0;
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: 10.5px;
+            color: #D1D1D6;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            -webkit-user-select: text;
+            user-select: text;
+        }
+
+        .copy-mini-btn {
+            min-height: 28px;
+            padding: 0 10px;
+            border-radius: 8px;
+            background: var(--theme-accent);
+            color: var(--theme-on-accent);
+            font-size: 11px;
+            font-weight: 800;
+            flex-shrink: 0;
+            transition: transform 0.1s ease;
+        }
+        .copy-mini-btn:active { transform: scale(0.94); }
+
+        .bridge-steps {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            font-size: 10.5px;
+            color: #D1D1D6;
+        }
+
+        .bridge-step {
+            padding: 7px 8px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-subtle);
+            line-height: 1.3;
+        }
+
+        /* Pulsing Shortcut Bridge Audio Arm Banner */
+        .shortcut-audio-banner {
+            margin: 0 16px 10px;
+            padding: 11px 13px;
+            border-radius: 14px;
+            background: linear-gradient(90deg, #FF453A 0%, #FF9F0A 100%);
+            color: #FFFFFF;
+            font-size: 11.5px;
+            font-weight: 900;
+            letter-spacing: 0.04em;
+            text-align: center;
+            text-transform: uppercase;
+            box-shadow: 0 6px 22px rgba(255, 69, 58, 0.55);
+            animation: bridgePulse 1s ease-in-out infinite alternate;
+            cursor: pointer;
+        }
+
+        @keyframes bridgePulse {
+            from { transform: scale(0.985); opacity: 0.92; }
+            to { transform: scale(1.015); opacity: 1; }
+        }
+    </style>
+</head>
+<body data-theme="cosmic-orange">
+
+    <!-- Desktop Fullscreen Preview Toggle -->
+    <div class="desktop-controls">
+        <button type="button" id="fullscreenToggleBtn" class="desktop-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 3 21 3 21 9"></polyline>
+                <polyline points="9 21 3 21 3 15"></polyline>
+                <line x1="21" y1="3" x2="14" y2="10"></line>
+                <line x1="3" y1="21" x2="10" y2="14"></line>
+            </svg>
+            <span id="fullscreenBtnText">Fullscreen Preview</span>
+        </button>
+    </div>
+
+    <div class="stage-wrapper">
+        <div class="iphone-chassis">
+            <!-- Desktop Side Hardware Buttons -->
+            <div class="hw-btn hw-action"></div>
+            <div class="hw-btn hw-vol-up"></div>
+            <div class="hw-btn hw-vol-down"></div>
+            <div class="hw-btn hw-power"></div>
+            <div class="hw-btn hw-camera"></div>
+
+            <div id="iphoneScreen" class="iphone-screen">
+                <!-- Interactive Dynamic Island -->
+                <button type="button" id="dynamicIsland" class="dynamic-island" aria-label="Dynamic Island Status">
+                    <span id="islandDot" class="island-dot"></span>
+                    <span id="islandLabel">2FA Alarm</span>
+                </button>
+
+                <!-- In-App Toast -->
+                <div id="iosToast" class="ios-toast">
+                    <div class="ios-toast-inner">
+                        <span id="toastDot" style="width:8px;height:8px;border-radius:50%;background:var(--theme-accent);flex-shrink:0;"></span>
+                        <span id="toastMsg">Ready</span>
+                    </div>
+                </div>
+
+                <!-- ===========================================================
+                     MAIN VISIBLE APP SCREEN
+                     =========================================================== -->
+                <main class="app-scroll no-scrollbar">
+
+                    <!-- Top Action Bar -->
+                    <header class="top-bar">
+                        <div class="brand-wrap">
+                            <div class="brand-badge">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                                    <polyline points="12 8 12 12 14.5 13.5"></polyline>
+                                </svg>
+                            </div>
+                            <div style="min-width:0;">
+                                <div class="brand-title">2FA ALARM</div>
+                                <div id="brandThemeSub" class="brand-sub">iPhone 17 Pro • Cosmic Orange</div>
+                            </div>
+                        </div>
+
+                        <div class="action-icons">
+                            <button type="button" id="formatBtn" class="pill-btn" title="Toggle 12H / 24H">12H</button>
+                            <button type="button" id="standbyOpenBtn" class="icon-btn" title="StandBy OLED Nightstand" aria-label="StandBy OLED Mode">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FF9F0A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                                </svg>
+                            </button>
+                            <button type="button" id="settingsOpenBtn" class="icon-btn settings-accent" title="Settings, Themes & Feature Tour" aria-label="Open Settings">
+                                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.01a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.01a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.01a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </header>
+
+                    <!-- 5-Minute Anti-Relapse Watch Banner (Hidden until Brutal Mode cleared) -->
+                    <div id="relapseBanner" class="relapse-banner hidden">
+                        <div>
+                            <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:var(--ios-red);">Still Awake? Anti-Relapse</div>
+                            <div style="font-size:12.5px;font-weight:700;margin-top:2px;">
+                                Recheck in <span id="relapseCountdownText" style="color:var(--ios-yellow);">05:00</span>
+                            </div>
+                        </div>
+                        <button type="button" id="relapseFastForwardBtn" style="min-height:34px;padding:0 11px;border-radius:10px;background:var(--ios-red);color:#FFFFFF;font-size:11px;font-weight:800;white-space:nowrap;">
+                            Fast-Forward 5m (Demo)
+                        </button>
+                    </div>
+
+                    <!-- Live Tabular Digital Clock Card -->
+                    <section class="ios-card clock-card">
+                        <div id="clockDate" class="clock-date">Wednesday, Nov 25</div>
+                        <div class="clock-row">
+                            <span id="clockHM" class="clock-hm">11:54</span>
+                            <div class="clock-meta">
+                                <span id="clockAmPm" class="clock-ampm">AM</span>
+                                <span id="clockSec" class="clock-sec">00</span>
+                            </div>
+                        </div>
+                        <div class="clock-status-row">
+                            <span id="alarmStatusChip" class="status-chip">Disarmed</span>
+                            <span id="countdownChip" class="status-chip hidden">In <strong id="countdownVal" style="color:#FFFFFF;">--</strong></span>
+                            <span id="wakeLockChip" class="status-chip">Wake Lock Off</span>
+                        </div>
+                    </section>
+
+                    <!-- Normal vs Brutal Mode Segmented Control -->
+                    <section class="ios-card">
+                        <div class="row-between">
+                            <span class="section-label">Lock Profile</span>
+                            <span id="profileSubtitle" style="font-size:11px;font-weight:700;color:var(--theme-accent);">Regular Days • Math + 2FA</span>
+                        </div>
+
+                        <div id="difficultySeg" class="ios-segmented">
+                            <div class="ios-seg-thumb"></div>
+                            <button type="button" id="segNormalBtn" class="seg-btn seg-normal">Normal Mode</button>
+                            <button type="button" id="segBrutalBtn" class="seg-btn seg-brutal">Brutal Mode</button>
+                        </div>
+
+                        <div id="gateChecklist" class="gate-grid">
+                            <div class="gate-item"><span style="color:var(--theme-accent);">●</span> 1× Math Keypad</div>
+                            <div class="gate-item"><span style="color:var(--theme-accent);">●</span> 1.5s Hold 2FA</div>
+                            <div class="gate-item"><span style="color:#30D158;">●</span> Digital Chime</div>
+                            <div class="gate-item"><span style="color:#FF9F0A;">●</span> Dodging Snooze</div>
+                        </div>
+                    </section>
+
+                    <!-- Alarm Time Picker + Arm / Test Actions -->
+                    <section class="ios-card" style="display:flex;flex-direction:column;gap:11px;">
+                        <div class="time-row">
+                            <div style="flex:1;">
+                                <label for="alarmTimeInput" class="section-label" style="display:block;margin-bottom:5px;">Alarm Time</label>
+                                <input type="time" id="alarmTimeInput" class="ios-input ios-time-input" value="07:00">
+                            </div>
+                            <div class="bump-col">
+                                <button type="button" id="bump1Btn" class="bump-btn">+1m</button>
+                                <button type="button" id="bump5Btn" class="bump-btn">+5m</button>
+                            </div>
+                        </div>
+
+                        <button type="button" id="armBtn" class="btn-primary">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                            </svg>
+                            <span id="armBtnText">Arm Alarm</span>
+                        </button>
+
+                        <div class="quick-test-grid">
+                            <button type="button" id="quickTestNormalBtn" class="btn-secondary" style="font-size:12px;">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="#FFD60A">
+                                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                                </svg>
+                                <span>Test Normal</span>
+                            </button>
+                            <button type="button" id="quickTestBrutalBtn" class="btn-secondary" style="font-size:12px;border-color:rgba(255,69,58,0.45);color:#FF6961;">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="#FF453A">
+                                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                                </svg>
+                                <span>Test Brutal</span>
+                            </button>
+                        </div>
+                    </section>
+
+                    <!-- Compact Stats Bar -->
+                    <section class="stats-bar">
+                        <button type="button" id="streakTileBtn" class="stat-tile">
+                            <div>
+                                <div class="section-label">Wake Streak</div>
+                                <div id="statStreakVal" style="font-size:17px;font-weight:800;margin-top:2px;">0 Days</div>
+                            </div>
+                            <span style="font-size:20px;">🔥</span>
+                        </button>
+                        <button type="button" id="debtTileBtn" class="stat-tile">
+                            <div>
+                                <div class="section-label">Snooze Debt</div>
+                                <div id="statPushupVal" style="font-size:17px;font-weight:800;color:var(--ios-red);margin-top:2px;">+0 Pushups</div>
+                            </div>
+                            <span style="font-size:20px;">💪</span>
+                        </button>
+                    </section>
+                </main>
+
+                <!-- ===========================================================
+                     OVERLAY 1: STANDBY OLED NIGHTSTAND MODE (STARTS HIDDEN)
+                     =========================================================== -->
+                <div id="standbyOverlay" class="overlay-full hidden" style="z-index:75;align-items:center;justify-content:space-between;padding:64px 24px 44px;cursor:pointer;">
+                    <div style="font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,69,58,0.58);">
+                        StandBy OLED • Burn-In Safe
+                    </div>
+                    <div id="standbyClockWrap" style="text-align:center;transition:transform 1.1s ease;">
+                        <div id="standbyTime" style="font-size:78px;font-weight:700;line-height:1;letter-spacing:-0.03em;color:rgba(255,82,62,0.78);">11:54</div>
+                        <div id="standbySub" style="margin-top:10px;font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,159,10,0.58);">
+                            Alarm Disarmed
+                        </div>
+                    </div>
+                    <div class="pill-btn" style="background:rgba(28,28,30,0.65);color:#8E8E93;">
+                        Tap Anywhere to Exit
+                    </div>
+                </div>
+
+                <!-- ===========================================================
+                     OVERLAY 2: UNIFIED SETTINGS SLIDE-UP SHEET (STARTS HIDDEN)
+                     =========================================================== -->
+                <div id="settingsModal" class="sheet-backdrop hidden">
+                    <div class="ios-sheet no-scrollbar">
+                        <div class="sheet-handle"></div>
+
+                        <div class="row-between">
+                            <div>
+                                <div style="font-size:19px;font-weight:800;">Settings</div>
+                                <div style="font-size:11px;color:var(--text-secondary);">iPhone 17 Pro Finishes, Tour & iOS Setup</div>
+                            </div>
+                            <button type="button" id="settingsCloseBtn" class="pill-btn" style="color:var(--theme-accent);">Done</button>
+                        </div>
+
+                        <!-- 1. iPhone 17 Pro Finish Themes -->
+                        <div class="settings-box">
+                            <div class="row-between">
+                                <span class="section-label">iPhone 17 Pro Finish</span>
+                                <span id="activeThemeLabel" style="font-size:11px;font-weight:700;color:var(--theme-accent);">Cosmic Orange</span>
+                            </div>
+
+                            <div class="swatch-grid">
+                                <button type="button" class="swatch-btn active" data-theme-id="cosmic-orange">
+                                    <span class="swatch-circle" style="background:linear-gradient(135deg,#FF8A4C 0%,#ff6b2b 55%,#A83A0E 100%);">
+                                        <svg class="swatch-check" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                    </span>
+                                    <span class="swatch-name">Cosmic Orange</span>
+                                </button>
+                                <button type="button" class="swatch-btn" data-theme-id="deep-blue">
+                                    <span class="swatch-circle" style="background:linear-gradient(135deg,#6B95FF 0%,#3b6cff 55%,#182D6B 100%);">
+                                        <svg class="swatch-check" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                    </span>
+                                    <span class="swatch-name">Deep Blue</span>
+                                </button>
+                                <button type="button" class="swatch-btn" data-theme-id="silver-titanium">
+                                    <span class="swatch-circle" style="background:linear-gradient(135deg,#FFFFFF 0%,#d8dde6 55%,#7A828F 100%);">
+                                        <svg class="swatch-check" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#09090B" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                    </span>
+                                    <span class="swatch-name">Silver Titanium</span>
+                                </button>
+                                <button type="button" class="swatch-btn" data-theme-id="desert-titanium">
+                                    <span class="swatch-circle" style="background:linear-gradient(135deg,#F1D6BA 0%,#d4b08c 55%,#7C5E40 100%);">
+                                        <svg class="swatch-check" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#140E08" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                    </span>
+                                    <span class="swatch-name">Desert Titanium</span>
+                                </button>
+                                <button type="button" class="swatch-btn" data-theme-id="black-titanium">
+                                    <span class="swatch-circle" style="background:linear-gradient(135deg,#6E7480 0%,#282A30 55%,#09090B 100%);">
+                                        <svg class="swatch-check" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                    </span>
+                                    <span class="swatch-name">Black Titanium</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 2. Interactive Feature Tour & Demo -->
+                        <div class="settings-box" style="border-color:var(--theme-accent);background:linear-gradient(145deg, var(--theme-accent-soft) 0%, rgba(0,0,0,0.65) 100%);">
+                            <div class="row-between">
+                                <div>
+                                    <div style="font-size:13.5px;font-weight:800;">Interactive Feature Tour & Demo</div>
+                                    <div style="font-size:11.5px;color:#D1D1D6;margin-top:2px;">5-step guided walkthrough + live audio & gauntlet demos.</div>
+                                </div>
+                                <span style="font-size:20px;">✨</span>
+                            </div>
+                            <button type="button" id="launchTourBtn" class="btn-primary" style="min-height:44px;background:var(--theme-accent);color:var(--theme-on-accent);">
+                                Launch Interactive Feature Tour
+                            </button>
+                        </div>
+
+                        <!-- 3. iOS Shortcuts Bridge (URL Auto-Trigger) -->
+                        <div class="settings-box" style="border-color:rgba(255,159,10,0.42);">
+                            <div class="row-between">
+                                <span class="section-label" style="color:var(--ios-orange);">iOS Shortcuts Bridge</span>
+                                <span style="font-size:10.5px;font-weight:700;color:#30D158;">Bulletproof Auto-Launch</span>
+                            </div>
+
+                            <div style="font-size:11.5px;color:#D1D1D6;line-height:1.4;">
+                                Trigger this 2FA gauntlet automatically the instant you stop your native iPhone alarm.
+                            </div>
+
+                            <div style="display:flex;flex-direction:column;gap:6px;">
+                                <div style="font-size:10px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;">Normal Trigger URL</div>
+                                <div class="url-row">
+                                    <span id="normalBridgeUrl" class="url-code">?trigger=normal</span>
+                                    <button type="button" id="copyNormalUrlBtn" class="copy-mini-btn">Copy</button>
+                                </div>
+                            </div>
+
+                            <div style="display:flex;flex-direction:column;gap:6px;">
+                                <div style="font-size:10px;font-weight:700;color:#FF6961;text-transform:uppercase;">Brutal Trigger URL</div>
+                                <div class="url-row">
+                                    <span id="brutalBridgeUrl" class="url-code">?trigger=brutal</span>
+                                    <button type="button" id="copyBrutalUrlBtn" class="copy-mini-btn" style="background:#FF453A;color:#FFFFFF;">Copy</button>
+                                </div>
+                            </div>
+
+                            <button type="button" id="simulateShortcutBtn" class="btn-secondary" style="border-color:rgba(255,159,10,0.5);color:#FFD60A;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                                </svg>
+                                <span>Simulate Shortcut Launch (Brutal)</span>
+                            </button>
+
+                            <div class="bridge-steps">
+                                <div class="bridge-step"><strong style="color:var(--ios-orange);">1. Shortcuts</strong><br>Automation → + → Alarm</div>
+                                <div class="bridge-step"><strong style="color:var(--ios-orange);">2. Trigger</strong><br>Is Stopped → Any / Existing</div>
+                                <div class="bridge-step"><strong style="color:var(--ios-orange);">3. Instant</strong><br>Select "Run Immediately"</div>
+                                <div class="bridge-step"><strong style="color:var(--ios-orange);">4. Action</strong><br>Open URL → Paste link</div>
+                            </div>
+                        </div>
+
+                        <!-- 4. Pushup Debt Ledger Reset -->
+                        <div class="settings-box">
+                            <div class="row-between">
+                                <div>
+                                    <div class="section-label">Snooze Pushup Debt</div>
+                                    <div id="settingsDebtLabel" style="font-size:14px;font-weight:800;color:var(--ios-red);margin-top:2px;">+0 Pushups</div>
+                                </div>
+                                <button type="button" id="settingsClearDebtBtn" class="pill-btn" style="color:var(--ios-green);border-color:rgba(48,209,88,0.4);">
+                                    Mark Paid ✓
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 5. iOS Setup & Sensor Authorization -->
+                        <div class="settings-box">
+                            <div class="row-between">
+                                <span class="section-label">iOS Setup & Sensors</span>
+                                <span style="font-size:10.5px;color:var(--text-secondary);">Safari PWA Ready</span>
+                            </div>
+
+                            <div style="font-size:11.5px;color:#D1D1D6;line-height:1.45;">
+                                <strong>Add to Home Screen:</strong> Open in Safari → Tap <strong>Share</strong> → <strong>Add to Home Screen</strong>.
+                            </div>
+
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;">
+                                <div id="capAudio" class="status-chip" style="justify-content:center;">Audio: Standby</div>
+                                <div id="capMotion" class="status-chip" style="justify-content:center;">Motion: Ready</div>
+                                <div id="capWake" class="status-chip" style="justify-content:center;">WakeLock: Check</div>
+                                <div id="capCamMic" class="status-chip" style="justify-content:center;">Cam/Mic: Ready</div>
+                            </div>
+
+                            <button type="button" id="grantSensorsBtn" class="btn-secondary" style="border-color:var(--theme-accent);color:var(--theme-accent);">
+                                Grant iOS Sensors & Audio
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===========================================================
+                     OVERLAY 3: INTERACTIVE 5-STEP FEATURE TOUR (STARTS HIDDEN)
+                     =========================================================== -->
+                <div id="tourModal" class="modal-backdrop hidden">
+                    <div class="modal-card">
+                        <div class="row-between">
+                            <span id="tourStepLabel" class="section-label" style="color:var(--theme-accent);">Step 1 of 5</span>
+                            <button type="button" id="tourCloseBtn" class="pill-btn">Close</button>
+                        </div>
+
+                        <div>
+                            <div id="tourTitle" style="font-size:18px;font-weight:800;">Welcome to 2FA Alarm</div>
+                            <div id="tourDesc" style="font-size:12.5px;color:#D1D1D6;margin-top:5px;line-height:1.45;">
+                                Built for iPhone 17 Pro so your half-asleep brain cannot snooze.
+                            </div>
+                        </div>
+
+                        <div id="tourPreview" class="tour-preview"></div>
+
+                        <div id="tourActions" style="display:flex;flex-direction:column;gap:7px;"></div>
+
+                        <div id="tourDots" class="tour-dots"></div>
+
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                            <button type="button" id="tourPrevBtn" class="btn-secondary">← Back</button>
+                            <button type="button" id="tourNextBtn" class="btn-primary" style="min-height:44px;background:var(--theme-accent);color:var(--theme-on-accent);">Next →</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===========================================================
+                     OVERLAY 4: ACTIVE ALARM GAUNTLET (STARTS HIDDEN)
+                     =========================================================== -->
+                <div id="gauntletOverlay" class="overlay-full hidden">
+                    <div class="gauntlet-header">
+                        <div style="min-width:0;">
+                            <div style="display:flex;align-items:center;gap:6px;">
+                                <span id="gauntletModeBadge" class="status-chip" style="color:var(--theme-accent);border-color:var(--theme-accent);">NORMAL ALARM</span>
+                                <span id="audioStatusPill" class="status-chip" style="color:var(--ios-yellow);">🔊 Active</span>
+                            </div>
+                            <div id="gauntletStageHeading" style="font-size:15px;font-weight:800;margin-top:4px;">Wake-Up Verification</div>
+                        </div>
+
+                        <button type="button" id="snoozeBtn" class="snooze-btn">Snooze</button>
+                    </div>
+
+                    <div id="stepBars" class="step-bars"></div>
+
+                    <!-- Pulsing iOS Shortcut Bridge Audio Unlock Banner -->
+                    <div id="shortcutAudioBanner" class="shortcut-audio-banner hidden">
+                        ⚡ SHORTCUT BRIDGE ACTIVE — TAP ANYWHERE TO ARM AUDIO
+                    </div>
+
+                    <div class="gauntlet-body no-scrollbar">
+
+                        <!-- BRUTAL STEP 1: ROOM LIGHT-CHECK + RAPID-TAP / SHAKE FALLBACK -->
+                        <div id="stageLight" class="hidden" style="display:flex;flex-direction:column;gap:10px;">
+                            <div class="ios-card" style="text-align:center;display:flex;flex-direction:column;gap:9px;">
+                                <div class="section-label" style="color:var(--ios-red);">Step 1 • Room Light-Check</div>
+                                <div style="font-size:12px;color:#D1D1D6;">Turn on room lights or point camera at a bright source (45%+).</div>
+
+                                <div class="cam-box">
+                                    <video id="camVideo" autoplay playsinline muted></video>
+                                    <canvas id="camCanvas" class="hidden"></canvas>
+                                    <div id="camPlaceholder" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:12px;color:var(--text-secondary);font-size:12px;">
+                                        <span id="camStatusText">Starting camera...</span>
+                                    </div>
+                                    <div class="cam-hud">
+                                        <div class="row-between" style="font-size:11px;font-weight:700;">
+                                            <span>Brightness</span>
+                                            <span id="lumaPct" style="color:var(--ios-yellow);">0%</span>
+                                        </div>
+                                        <div class="progress-track">
+                                            <div id="lumaBar" class="progress-fill"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button type="button" id="lightPassBtn" class="btn-primary" disabled>Light Verified — Next</button>
+                            </div>
+
+                            <!-- Immediate Fallback -->
+                            <div class="ios-card" style="display:flex;flex-direction:column;gap:9px;">
+                                <div class="row-between">
+                                    <span class="section-label" style="color:var(--ios-orange);">Rapid-Tap (25×) / Shake Fallback</span>
+                                    <span id="fallbackLeftBadge" class="status-chip" style="color:#FFF;">25 left</span>
+                                </div>
+                                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                                    <button type="button" id="enableShakeBtn" class="btn-secondary" style="font-size:12px;">Enable Shake</button>
+                                    <button type="button" id="rapidTapBtn" style="min-height:44px;border-radius:14px;background:var(--ios-orange);color:#000;font-size:12.5px;font-weight:800;">
+                                        RAPID TAP!
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- BRUTAL STEP 2: VOICE VERIFICATION + TAP WORDS FALLBACK -->
+                        <div id="stageVoice" class="hidden" style="display:flex;flex-direction:column;gap:10px;">
+                            <div class="ios-card" style="text-align:center;display:flex;flex-direction:column;gap:9px;">
+                                <div class="section-label" style="color:var(--ios-red);">Step 2 • Voice Verification</div>
+                                <div id="voiceTargetBox" style="padding:12px;border-radius:14px;background:rgba(0,0,0,0.72);border:1px solid rgba(255,69,58,0.45);font-size:14px;font-weight:700;color:var(--ios-yellow);">
+                                    "I am fully awake and ready to rise"
+                                </div>
+                                <button type="button" id="micBtn" class="btn-primary" style="background:var(--ios-red);color:#FFF;">
+                                    🎙 Tap to Speak Phrase
+                                </button>
+                                <div id="voiceHeardBox" style="font-size:12px;color:var(--ios-cyan);min-height:18px;">Waiting for speech...</div>
+                            </div>
+
+                            <!-- Immediate Fallback -->
+                            <div class="ios-card" style="display:flex;flex-direction:column;gap:8px;">
+                                <div class="row-between">
+                                    <span class="section-label" style="color:var(--ios-orange);">Tap Words in Order Fallback</span>
+                                    <button type="button" id="resetWordsBtn" style="font-size:11px;font-weight:700;color:var(--ios-cyan);">Reset</button>
+                                </div>
+                                <div id="wordProgress" style="min-height:28px;padding:6px 10px;border-radius:10px;background:rgba(0,0,0,0.7);font-size:12px;font-weight:700;color:var(--ios-green);">
+                                    Tap words in exact order...
+                                </div>
+                                <div id="wordChipsWrap" class="word-chips"></div>
+                            </div>
+                        </div>
+
+                        <!-- MATH STAGE (NORMAL 1x / BRUTAL 2x) -->
+                        <div id="stageMath" class="hidden" style="display:flex;flex-direction:column;gap:10px;flex:1;">
+                            <div class="ios-card" style="text-align:center;display:flex;flex-direction:column;gap:7px;">
+                                <div class="row-between">
+                                    <span class="section-label">Math Lock</span>
+                                    <span id="mathStepTag" style="font-size:11px;font-weight:700;color:var(--active-accent);">Problem 1 of 1</span>
+                                </div>
+                                <div id="mathQuestion" style="font-size:30px;font-weight:800;padding:4px 0;">24 + 18 = ?</div>
+                                <div id="mathDisplay" style="min-height:44px;border-radius:13px;background:rgba(0,0,0,0.75);border:1.5px solid var(--border-strong);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;color:var(--ios-cyan);">
+                                    <span style="font-size:13px;color:var(--text-muted);font-weight:500;">Enter answer below</span>
+                                </div>
+                                <div id="mathErrorMsg" style="min-height:15px;font-size:11.5px;font-weight:700;color:var(--ios-red);"></div>
+                            </div>
+
+                            <div id="mathKeypadMount" class="keypad-wrap"></div>
+                        </div>
+
+                        <!-- 2FA HOLD-TO-REVEAL + 6-DIGIT TOTP STAGE -->
+                        <div id="stage2FA" class="hidden" style="display:flex;flex-direction:column;gap:9px;flex:1;">
+                            <div class="ios-card" style="display:flex;flex-direction:column;gap:9px;">
+                                <div class="row-between">
+                                    <span class="section-label" style="color:var(--ios-cyan);">2FA TOTP Authenticator</span>
+                                    <span id="otpTimerLabel" style="font-size:12px;font-weight:800;color:var(--ios-cyan);">30s</span>
+                                </div>
+
+                                <div class="progress-track" style="margin-top:0;">
+                                    <div id="otpCountdownBar" class="progress-fill" style="width:100%;background:var(--ios-cyan);"></div>
+                                </div>
+
+                                <div style="text-align:center;background:rgba(0,0,0,0.68);border-radius:14px;padding:10px;display:flex;flex-direction:column;gap:8px;">
+                                    <div id="otpCodeText" class="otp-code blurred">000 000</div>
+
+                                    <button type="button" id="holdRevealBtn" class="hold-ring-btn">
+                                        <svg width="26" height="26" viewBox="0 0 28 28" style="transform:rotate(-90deg);flex-shrink:0;">
+                                            <circle cx="14" cy="14" r="11" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="3"></circle>
+                                            <circle id="holdRingCircle" cx="14" cy="14" r="11" fill="none" stroke="#30D158" stroke-width="3" stroke-dasharray="69.115" stroke-dashoffset="69.115" stroke-linecap="round"></circle>
+                                        </svg>
+                                        <span id="holdBtnText">Hold 1.5s to Reveal Code</span>
+                                    </button>
+                                </div>
+
+                                <div id="otpSlotsWrap" class="otp-slots">
+                                    <div class="otp-slot"></div>
+                                    <div class="otp-slot"></div>
+                                    <div class="otp-slot"></div>
+                                    <div class="otp-slot"></div>
+                                    <div class="otp-slot"></div>
+                                    <div class="otp-slot"></div>
+                                </div>
+                                <div id="otpErrorMsg" style="min-height:14px;font-size:11px;font-weight:700;color:var(--ios-red);text-align:center;"></div>
+                            </div>
+
+                            <div id="otpKeypadMount" class="keypad-wrap"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===========================================================
+                     OVERLAY 5: 15-SECOND STILL AWAKE? MODAL (STARTS HIDDEN)
+                     =========================================================== -->
+                <div id="relapseModal" class="modal-backdrop hidden">
+                    <div class="modal-card" style="text-align:center;border-color:var(--ios-red);">
+                        <div style="font-size:12px;font-weight:800;text-transform:uppercase;color:var(--ios-red);letter-spacing:0.08em;">
+                            5-Minute Anti-Relapse Check
+                        </div>
+                        <div style="font-size:20px;font-weight:800;">Are You Still Awake?</div>
+                        <div id="relapseAlertSec" style="font-size:52px;font-weight:800;color:var(--ios-yellow);line-height:1;">15</div>
+                        <div style="font-size:12px;color:#D1D1D6;">Tap below before time runs out or the Brutal Alarm restarts at full blast!</div>
+                        <button type="button" id="confirmAwakeBtn" class="btn-primary" style="background:var(--ios-green);color:#000;min-height:52px;font-size:15px;">
+                            CONFIRM I'M AWAKE
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ===========================================================
+                     OVERLAY 6: POST-WAKE VICTORY SUMMARY (STARTS HIDDEN)
+                     =========================================================== -->
+                <div id="summaryModal" class="modal-backdrop hidden">
+                    <div class="modal-card" style="text-align:center;">
+                        <div style="font-size:34px;">☀️</div>
+                        <div>
+                            <div id="summaryTitle" style="font-size:19px;font-weight:800;">Good Morning!</div>
+                            <div id="summarySubtitle" style="font-size:12px;color:var(--text-secondary);margin-top:2px;">Alarm disarmed via 2FA</div>
+                        </div>
+
+                        <div class="settings-box" style="text-align:left;gap:8px;font-size:12.5px;">
+                            <div class="row-between"><span style="color:var(--text-secondary);">Wake Time</span><strong id="sumTime">--</strong></div>
+                            <div class="row-between"><span style="color:var(--text-secondary);">Mode</span><strong id="sumMode">--</strong></div>
+                            <div class="row-between"><span style="color:var(--text-secondary);">Failed Attempts</span><strong id="sumFails" style="color:var(--ios-yellow);">0</strong></div>
+                            <div class="row-between"><span style="color:var(--text-secondary);">Wake Streak</span><strong id="sumStreak" style="color:var(--ios-green);">0 Days</strong></div>
+                            <div class="row-between"><span style="color:var(--text-secondary);">Snooze Debt</span><strong id="sumPushups" style="color:var(--ios-red);">+0 Pushups</strong></div>
+                        </div>
+
+                        <button type="button" id="clearDebtBtn" class="btn-secondary hidden" style="color:var(--ios-green);">
+                            Clear Pushup Debt (Done!)
+                        </button>
+                        <button type="button" id="summaryCloseBtn" class="btn-primary" style="background:var(--theme-accent);color:var(--theme-on-accent);">
+                            Done
+                        </button>
+                    </div>
+                </div>
+
+                <div class="home-indicator"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            'use strict';
+
+            /* =================================================================
+               SAFE STORAGE HELPERS (SANDBOX-PROOF)
+               ================================================================= */
+            const STATS_KEY = 'ios17pro_alarm_stats_v3';
+            const THEME_KEY = 'ios17pro_alarm_theme_v3';
+
+            function safeGet(key, fallback) {
+                try {
+                    const val = window.localStorage ? window.localStorage.getItem(key) : null;
+                    return val !== null ? val : fallback;
+                } catch (e) {
+                    return fallback;
+                }
+            }
+
+            function safeSet(key, val) {
+                try {
+                    if (window.localStorage) window.localStorage.setItem(key, val);
+                } catch (e) {}
+            }
+
+            /* =================================================================
+               APP STATE
+               ================================================================= */
+            const THEMES = {
+                'cosmic-orange':   'Cosmic Orange',
+                'deep-blue':       'Deep Blue',
+                'silver-titanium': 'Silver Titanium',
+                'desert-titanium': 'Desert Titanium',
+                'black-titanium':  'Black Titanium'
+            };
+
+            const PHRASES = [
+                'I am fully awake and ready to rise',
+                'No more snooze today is my day',
+                'My feet are on the floor right now'
+            ];
+
+            let currentTheme = safeGet(THEME_KEY, 'cosmic-orange');
+            if (!THEMES[currentTheme]) currentTheme = 'cosmic-orange';
+
+            let stats = { streak: 0, pushups: 0, lastTime: '--', lastMode: '--', lastFails: 0 };
+            try {
+                const parsed = JSON.parse(safeGet(STATS_KEY, 'null'));
+                if (parsed && typeof parsed === 'object') stats = Object.assign(stats, parsed);
+            } catch (e) {}
+
+            let difficulty = 'normal'; // 'normal' | 'brutal'
+            let is24Hour = false;
+            let isArmed = false;
+            let isRinging = false;
+            let alarmTimeStr = '07:00';
+
+            // Audio & Wake Lock
+            let audioCtx = null;
+            let soundTimer = null;
+            let escalateTimer = null;
+            let escalateLevel = 0;
+            let wakeLockSentinel = null;
+            let standbyShiftTimer = null;
+
+            // Gauntlet session
+            let ringStartTs = 0;
+            let sessionFails = 0;
+            let stages = [];
+            let stageIndex = 0;
+            let snoozeDodges = 0;
+
+            // Stage 1: Light / Rapid-Tap / Shake
+            let camStream = null;
+            let camPollTimer = null;
+            let brightHits = 0;
+            let fallbackLeft = 25;
+            let shakeBound = false;
+            let lastShakeTs = 0;
+
+            // Stage 2: Voice / Tap Words
+            let activePhrase = PHRASES[0];
+            let phraseWords = [];
+            let tappedWords = [];
+            let speechRec = null;
+            let isListening = false;
+
+            // Stage 3: Math
+            let mathNum = 1;
+            let mathTotal = 1;
+            let mathAnswer = 0;
+            let mathBuffer = '';
+
+            // Stage 4: 2FA Hold-to-Reveal + TOTP
+            let holdRequiredMs = 1500;
+            let holdStartTs = 0;
+            let holdRaf = null;
+            let otpUnlocked = false;
+            let currentOTP = '123456';
+            let otpBuffer = '';
+            let otpDuration = 30;
+            let otpLeft = 30;
+            let otpTimer = null;
+
+            // Stage 5: 5-Minute Anti-Relapse
+            let relapseSecLeft = 0;
+            let relapseWatchTimer = null;
+            let relapseAlertSec = 15;
+            let relapseAlertTimer = null;
+
+            // Feature Tour & Sound Preview
+            let tourIdx = 0;
+            let previewSoundTimer = null;
+            let isPreviewingSound = false;
+            let toastTimer = null;
+            let bridgeUnlockHandler = null;
+
+            const $ = (id) => document.getElementById(id);
+
+            /* =================================================================
+               INITIALIZATION (SAFE DOMCONTENTLOADED)
+               ================================================================= */
+            function initApp() {
+                applyTheme(currentTheme, false);
+                setDefaultAlarmInput();
+                renderProfileUI();
+                renderStatsUI();
+                updateClock();
+                setInterval(updateClock, 1000);
+                bindEvents();
+                refreshCapabilityPills();
+                refreshBridgeUrls();
+                checkShortcutURLParams();
+
+                document.addEventListener('visibilitychange', () => {
+                    if (document.visibilityState === 'visible' && (isArmed || isRinging)) {
+                        requestWakeLock();
+                    }
+                });
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initApp);
+            } else {
+                initApp();
+            }
+
+            function bindEvents() {
+                const on = (id, evt, fn) => {
+                    const el = $(id);
+                    if (el) el.addEventListener(evt, fn);
+                };
+
+                // Desktop fullscreen
+                on('fullscreenToggleBtn', 'click', () => {
+                    const full = document.body.classList.toggle('desktop-fullscreen');
+                    const lbl = $('fullscreenBtnText');
+                    if (lbl) lbl.textContent = full ? 'iPhone 17 Pro Frame' : 'Fullscreen Preview';
+                });
+
+                // Dynamic Island
+                on('dynamicIsland', 'click', () => {
+                    if (relapseSecLeft > 0) {
+                        showToast('Still Awake check in ' + formatMMSS(relapseSecLeft), 'warn');
+                    } else if (isArmed) {
+                        showToast('Armed for ' + alarmTimeStr + ' (' + difficulty.toUpperCase() + ')', 'success');
+                    } else {
+                        openSettings();
+                    }
+                });
+
+                // Top bar
+                on('formatBtn', 'click', () => {
+                    is24Hour = !is24Hour;
+                    $('formatBtn').textContent = is24Hour ? '24H' : '12H';
+                    updateClock();
+                });
+                on('standbyOpenBtn', 'click', enterStandBy);
+                on('standbyOverlay', 'click', exitStandBy);
+                on('settingsOpenBtn', 'click', openSettings);
+                on('settingsCloseBtn', 'click', closeSettings);
+                on('settingsModal', 'click', (e) => {
+                    if (e.target === $('settingsModal')) closeSettings();
+                });
+
+                // Theme swatches
+                document.querySelectorAll('.swatch-btn').forEach((btn) => {
+                    btn.addEventListener('click', () => {
+                        const id = btn.getAttribute('data-theme-id');
+                        if (id) applyTheme(id, true);
+                    });
+                });
+
+                // Profile segmented control
+                on('segNormalBtn', 'click', () => setDifficulty('normal'));
+                on('segBrutalBtn', 'click', () => setDifficulty('brutal'));
+
+                // Alarm controls
+                on('bump1Btn', 'click', () => bumpAlarm(1));
+                on('bump5Btn', 'click', () => bumpAlarm(5));
+                on('armBtn', 'click', toggleArm);
+                on('quickTestNormalBtn', 'click', () => startTestAlarm('normal'));
+                on('quickTestBrutalBtn', 'click', () => startTestAlarm('brutal'));
+
+                // iOS Shortcuts Bridge & Settings Debt Reset
+                on('copyNormalUrlBtn', 'click', () => copyTextWithFallback(getBridgeUrl('normal'), 'Normal Trigger URL'));
+                on('copyBrutalUrlBtn', 'click', () => copyTextWithFallback(getBridgeUrl('brutal'), 'Brutal Trigger URL'));
+                on('simulateShortcutBtn', 'click', () => {
+                    closeSettings();
+                    launchShortcutBridge('brutal', true);
+                });
+                on('settingsClearDebtBtn', 'click', () => {
+                    stats.pushups = 0;
+                    saveStats();
+                    showToast('Pushup debt marked paid!', 'success');
+                });
+
+                // Settings -> iOS sensors & Feature Tour
+                on('grantSensorsBtn', 'click', grantIOSSensors);
+                on('launchTourBtn', 'click', openTour);
+                on('tourCloseBtn', 'click', closeTour);
+                on('tourPrevBtn', 'click', () => {
+                    if (tourIdx > 0) { tourIdx--; renderTour(); }
+                });
+                on('tourNextBtn', 'click', () => {
+                    if (tourIdx < TOUR_STEPS.length - 1) { tourIdx++; renderTour(); }
+                    else closeTour();
+                });
+
+                // Gauntlet controls
+                on('snoozeBtn', 'mouseenter', onSnoozeHover);
+                on('snoozeBtn', 'click', onSnoozeClick);
+                on('lightPassBtn', 'click', completeLightStage);
+                on('enableShakeBtn', 'click', enableShakeFallback);
+                on('rapidTapBtn', 'click', registerFallbackHit);
+                on('micBtn', 'click', toggleSpeech);
+                on('resetWordsBtn', 'click', setupWordFallback);
+
+                // Relapse controls
+                on('relapseFastForwardBtn', 'click', () => {
+                    if (relapseSecLeft > 5) {
+                        relapseSecLeft = 5;
+                        updateRelapseUI();
+                        showToast('Fast-forwarded to 5s (Demo)', 'warn');
+                    }
+                });
+                on('confirmAwakeBtn', 'click', confirmStillAwake);
+
+                // Stats & Summary modal controls
+                on('streakTileBtn', 'click', () => openSummary(false));
+                on('debtTileBtn', 'click', () => openSummary(false));
+                on('summaryCloseBtn', 'click', closeSummary);
+                on('clearDebtBtn', 'click', () => {
+                    stats.pushups = 0;
+                    saveStats();
+                    openSummary(false);
+                    showToast('Pushup debt cleared!', 'success');
+                });
+
+                // Hold-to-Reveal 2FA touch/pointer binding
+                bindHoldReveal();
+            }
+
+            /* =================================================================
+               ARM / DISARM, WAKE LOCK & STANDBY OLED MODE
+               ================================================================= */
+            function toggleArm() {
+                const input = $('alarmTimeInput');
+                if (input && input.value) alarmTimeStr = input.value;
+
+                if (!isArmed) {
+                    unlockAudio();
+                    isArmed = true;
+                    requestWakeLock();
+                    renderArmedUI();
+                    updateClock();
+                    setIsland(
+                        difficulty === 'brutal' ? 'brutal' : 'armed',
+                        (difficulty === 'brutal' ? 'BRUTAL • ' : 'ARMED • ') + alarmTimeStr
+                    );
+                    showToast('Alarm armed for ' + alarmTimeStr, 'success');
+                } else {
+                    isArmed = false;
+                    releaseWakeLock();
+                    renderArmedUI();
+                    setIsland('idle', '2FA Alarm');
+                    showToast('Alarm disarmed', 'info');
+                }
+            }
+
+            function renderArmedUI() {
+                const btn = $('armBtn');
+                const txt = $('armBtnText');
+                const statusChip = $('alarmStatusChip');
+                const cdChip = $('countdownChip');
+                const standbySub = $('standbySub');
+
+                if (btn) btn.classList.toggle('armed', isArmed);
+                if (txt) txt.textContent = isArmed ? 'Disarm Alarm (' + alarmTimeStr + ')' : 'Arm Alarm';
+                if (statusChip) {
+                    statusChip.textContent = isArmed ? ('Armed • ' + alarmTimeStr) : 'Disarmed';
+                    statusChip.classList.toggle('good', isArmed);
+                }
+                if (cdChip) cdChip.classList.toggle('hidden', !isArmed);
+                if (standbySub) {
+                    standbySub.textContent = isArmed
+                        ? (difficulty.toUpperCase() + ' ARMED • ' + alarmTimeStr)
+                        : 'Alarm Disarmed';
+                }
+            }
+
+            async function requestWakeLock() {
+                const chip = $('wakeLockChip');
+                try {
+                    if ('wakeLock' in navigator && navigator.wakeLock) {
+                        wakeLockSentinel = await navigator.wakeLock.request('screen');
+                        if (chip) {
+                            chip.textContent = 'Wake Lock On';
+                            chip.classList.add('good');
+                        }
+                        wakeLockSentinel.addEventListener('release', () => {
+                            if (chip) {
+                                chip.textContent = 'Wake Lock Off';
+                                chip.classList.remove('good');
+                            }
+                        });
+                    }
+                } catch (e) {
+                    if (chip) {
+                        chip.textContent = 'Wake Lock N/A';
+                        chip.classList.remove('good');
+                    }
+                }
+            }
+
+            function releaseWakeLock() {
+                try {
+                    if (wakeLockSentinel) {
+                        wakeLockSentinel.release();
+                        wakeLockSentinel = null;
+                    }
+                } catch (e) {}
+                const chip = $('wakeLockChip');
+                if (chip) {
+                    chip.textContent = 'Wake Lock Off';
+                    chip.classList.remove('good');
+                }
+            }
+
+            function enterStandBy() {
+                const overlay = $('standbyOverlay');
+                if (!overlay) return;
+                renderArmedUI();
+                overlay.classList.remove('hidden');
+                requestWakeLock();
+
+                clearInterval(standbyShiftTimer);
+                standbyShiftTimer = setInterval(() => {
+                    const wrap = $('standbyClockWrap');
+                    if (!wrap) return;
+                    const dx = Math.floor(Math.random() * 18) - 9;
+                    const dy = Math.floor(Math.random() * 18) - 9;
+                    wrap.style.transform = 'translate(' + dx + 'px, ' + dy + 'px)';
+                }, 30000);
+            }
+
+            function exitStandBy() {
+                const overlay = $('standbyOverlay');
+                if (overlay) overlay.classList.add('hidden');
+                clearInterval(standbyShiftTimer);
+                standbyShiftTimer = null;
+                const wrap = $('standbyClockWrap');
+                if (wrap) wrap.style.transform = 'translate(0, 0)';
+            }
+
+            /* =================================================================
+               SETTINGS SHEET & iOS SENSOR AUTHORIZATION
+               ================================================================= */
+            function openSettings() {
+                refreshCapabilityPills();
+                refreshBridgeUrls();
+                renderStatsUI();
+                if ($('settingsModal')) $('settingsModal').classList.remove('hidden');
+            }
+
+            function closeSettings() {
+                if ($('settingsModal')) $('settingsModal').classList.add('hidden');
+            }
+
+            function refreshCapabilityPills() {
+                const setPill = (id, text, good) => {
+                    const el = $(id);
+                    if (!el) return;
+                    el.textContent = text;
+                    el.classList.toggle('good', !!good);
+                };
+                setPill('capAudio', audioCtx && audioCtx.state === 'running' ? 'Audio: Ready ✓' : 'Audio: Tap Grant', audioCtx && audioCtx.state === 'running');
+                setPill('capMotion', typeof DeviceMotionEvent !== 'undefined' ? 'Motion: Supported' : 'Motion: Tap Fallback', typeof DeviceMotionEvent !== 'undefined');
+                setPill('capWake', 'wakeLock' in navigator ? 'WakeLock: Supported' : 'WakeLock: StandBy', 'wakeLock' in navigator);
+                setPill('capCamMic', navigator.mediaDevices ? 'Cam/Mic: Available' : 'Cam/Mic: Fallback', !!navigator.mediaDevices);
+            }
+
+            async function grantIOSSensors() {
+                unlockAudio();
+                playTone(880, 0.12, 'sine', 0.16);
+                await requestWakeLock();
+                try {
+                    if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+                        await DeviceMotionEvent.requestPermission();
+                    }
+                } catch (e) {}
+                refreshCapabilityPills();
+                showToast('iOS Audio & Sensors authorized!', 'success');
+            }
+
+            /* =================================================================
+               WEB AUDIO SYNTHESIZER (ZERO EXTERNAL SOUND URLS)
+               ================================================================= */
+            function unlockAudio() {
+                try {
+                    const AudioCtor = window.AudioContext || window.webkitAudioContext;
+                    if (!AudioCtor) return;
+                    if (!audioCtx) audioCtx = new AudioCtor();
+                    if (audioCtx.state === 'suspended') audioCtx.resume();
+                } catch (e) {}
+            }
+
+            function playTone(freq, dur, type, vol) {
+                try {
+                    if (!audioCtx) unlockAudio();
+                    if (!audioCtx) return;
+                    const now = audioCtx.currentTime;
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = type || 'sine';
+                    osc.frequency.setValueAtTime(freq, now);
+                    gain.gain.setValueAtTime(0.0001, now);
+                    gain.gain.exponentialRampToValueAtTime(vol || 0.2, now + 0.02);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + dur + 0.02);
+                } catch (e) {}
+            }
+
+            function startAlarmAudio() {
+                stopAlarmAudio();
+                unlockAudio();
+                escalateLevel = 0;
+
+                const playBeat = () => {
+                    if (difficulty === 'brutal') {
+                        const base = 720 + (escalateLevel * 120);
+                        const vol = Math.min(0.42, 0.22 + escalateLevel * 0.05);
+                        const wave = escalateLevel >= 2 ? 'sawtooth' : 'square';
+                        playTone(base, 0.16, wave, vol);
+                        setTimeout(() => playTone(base * 1.25, 0.18, wave, vol), 190);
+                    } else {
+                        playTone(880, 0.18, 'triangle', 0.22);
+                        setTimeout(() => playTone(1174, 0.22, 'triangle', 0.22), 220);
+                    }
+                };
+
+                playBeat();
+                soundTimer = setInterval(playBeat, difficulty === 'brutal' ? 750 : 1200);
+                if ($('audioStatusPill')) {
+                    $('audioStatusPill').textContent = difficulty === 'brutal' ? '🔊 Brutal Lv.1' : '🔊 Chime Active';
+                }
+
+                if (difficulty === 'brutal') {
+                    escalateTimer = setInterval(() => {
+                        escalateLevel = Math.min(4, escalateLevel + 1);
+                        if ($('audioStatusPill')) $('audioStatusPill').textContent = '🔊 Chaos Lv.' + (escalateLevel + 1);
+                    }, 20000);
+                }
+            }
+
+            function stopAlarmAudio() {
+                clearInterval(soundTimer);
+                clearInterval(escalateTimer);
+                soundTimer = null;
+                escalateTimer = null;
+            }
+
+            /* =================================================================
+               INTERACTIVE 5-STEP FEATURE TOUR & DEMO
+               ================================================================= */
+            const TOUR_STEPS = [
+                {
+                    title: 'Normal vs. Brutal Mode',
+                    desc: 'Use Normal Mode for regular mornings (Math + 1.5s 2FA + Dodging Snooze with +20 pushups debt) or Brutal Mode when you absolutely cannot miss.',
+                    preview: '<div style="font-size:28px;">🛡️ ⚡ 🔥</div><div style="font-size:11.5px;color:#D1D1D6;">2 Profiles • Zero Excuses</div>',
+                    actions: [
+                        { label: 'Test Normal Alarm Now', style: 'secondary', fn: () => { closeTour(); startTestAlarm('normal'); } },
+                        { label: 'Test Brutal Gauntlet Now', style: 'danger', fn: () => { closeTour(); startTestAlarm('brutal'); } }
+                    ]
+                },
+                {
+                    title: 'Camera Light-Check & Shake',
+                    desc: 'In Brutal Mode, turn on bedroom lights (45%+ brightness) to pass—or use the Shake-to-Wake / Rapid-Tap 25× fallback to get your heart rate up.',
+                    preview: '<div style="font-size:28px;">💡 📷 📳</div><div style="font-size:11.5px;color:#FFD60A;">Brightness ≥ 45% or 25× Rapid-Tap</div>',
+                    actions: []
+                },
+                {
+                    title: 'Voice Verification & Word Lock',
+                    desc: 'Speak a random wake-up phrase out loud into your iPhone mic so you cannot mumble under a blanket—with a Tap-Words-in-Order fallback.',
+                    preview: '<div style="font-size:28px;">🎙️ 🗣️</div><div style="font-size:11.5px;color:#32ADE6;">"I am fully awake and ready to rise"</div>',
+                    actions: []
+                },
+                {
+                    title: 'Hold-to-Reveal 2FA & iOS Keypad',
+                    desc: 'Hold the circular progress ring to unblur a rotating 6-digit TOTP code, then enter it on the custom circular iOS keypad (no Safari keyboard pop-up).',
+                    preview: '<div style="font-size:24px;font-weight:800;letter-spacing:0.18em;color:#30D158;">482 910</div><div style="font-size:11px;color:#98989F;">Rotating 30s Authenticator</div>',
+                    actions: []
+                },
+                {
+                    title: 'Escalating Audio & 5-Min Relapse Check',
+                    desc: 'Brutal audio mutates every 20 seconds so your brain cannot tune it out. Five minutes after waking, a 15-second "Still Awake?" check prevents going back to sleep.',
+                    preview: '<div class="wave-bars"><span></span><span></span><span></span><span></span><span></span></div><div style="font-size:11.5px;color:#FF9F0A;">Adaptive Web Audio + Shortcuts Bridge</div>',
+                    actions: [
+                        { label: 'Preview Escalating Sound', style: 'secondary', fn: togglePreviewSound }
+                    ]
+                }
+            ];
+
+            function openTour() {
+                closeSettings();
+                tourIdx = 0;
+                renderTour();
+                if ($('tourModal')) $('tourModal').classList.remove('hidden');
+            }
+
+            function closeTour() {
+                stopPreviewSound();
+                if ($('tourModal')) $('tourModal').classList.add('hidden');
+            }
+
+            function renderTour() {
+                stopPreviewSound();
+                const step = TOUR_STEPS[tourIdx];
+                if (!step) return;
+
+                if ($('tourStepLabel')) $('tourStepLabel').textContent = 'Step ' + (tourIdx + 1) + ' of ' + TOUR_STEPS.length;
+                if ($('tourTitle')) $('tourTitle').textContent = step.title;
+                if ($('tourDesc')) $('tourDesc').textContent = step.desc;
+                if ($('tourPreview')) $('tourPreview').innerHTML = step.preview;
+
+                const actionsEl = $('tourActions');
+                if (actionsEl) {
+                    actionsEl.innerHTML = '';
+                    step.actions.forEach((act) => {
+                        const b = document.createElement('button');
+                        b.type = 'button';
+                        b.className = act.style === 'danger' ? 'btn-primary armed' : 'btn-secondary';
+                        b.style.minHeight = '40px';
+                        b.textContent = act.label;
+                        b.addEventListener('click', act.fn);
+                        actionsEl.appendChild(b);
+                    });
+                }
+
+                const dotsEl = $('tourDots');
+                if (dotsEl) {
+                    dotsEl.innerHTML = '';
+                    TOUR_STEPS.forEach((_, i) => {
+                        const d = document.createElement('span');
+                        d.className = 'tour-dot' + (i === tourIdx ? ' active' : '');
+                        dotsEl.appendChild(d);
+                    });
+                }
+
+                if ($('tourPrevBtn')) $('tourPrevBtn').disabled = tourIdx === 0;
+                if ($('tourNextBtn')) $('tourNextBtn').textContent = tourIdx === TOUR_STEPS.length - 1 ? 'Finish ✓' : 'Next →';
+            }
+
+            function togglePreviewSound() {
+                if (isPreviewingSound) {
+                    stopPreviewSound();
+                    showToast('Sound preview stopped', 'info');
+                    return;
+                }
+                unlockAudio();
+                isPreviewingSound = true;
+                let step = 0;
+                const tick = () => {
+                    const f = 700 + step * 160;
+                    playTone(f, 0.16, step > 1 ? 'sawtooth' : 'square', 0.22);
+                    step = (step + 1) % 4;
+                };
+                tick();
+                previewSoundTimer = setInterval(tick, 550);
+                showToast('Previewing escalating alarm audio...', 'warn');
+            }
+
+            function stopPreviewSound() {
+                clearInterval(previewSoundTimer);
+                previewSoundTimer = null;
+                isPreviewingSound = false;
+            }
+
+            /* =================================================================
+               THEMES & STATS
+               ================================================================= */
+            function applyTheme(themeId, notify) {
+                if (!THEMES[themeId]) themeId = 'cosmic-orange';
+                currentTheme = themeId;
+                document.body.setAttribute('data-theme', themeId);
+                safeSet(THEME_KEY, themeId);
+
+                const name = THEMES[themeId];
+                if ($('brandThemeSub')) $('brandThemeSub').textContent = 'iPhone 17 Pro • ' + name;
+                if ($('activeThemeLabel')) $('activeThemeLabel').textContent = name;
+
+                document.querySelectorAll('.swatch-btn').forEach((btn) => {
+                    btn.classList.toggle('active', btn.getAttribute('data-theme-id') === themeId);
+                });
+
+                renderProfileUI();
+                if (notify) showToast('Finish: ' + name, 'info');
+            }
+
+            function saveStats() {
+                safeSet(STATS_KEY, JSON.stringify(stats));
+                renderStatsUI();
+            }
+
+            function renderStatsUI() {
+                if ($('statStreakVal')) $('statStreakVal').textContent = stats.streak + (stats.streak === 1 ? ' Day' : ' Days');
+                if ($('statPushupVal')) $('statPushupVal').textContent = '+' + stats.pushups + ' Pushups';
+                if ($('settingsDebtLabel')) $('settingsDebtLabel').textContent = '+' + stats.pushups + ' Pushups';
+                if ($('settingsClearDebtBtn')) $('settingsClearDebtBtn').disabled = stats.pushups <= 0;
+            }
+
+            /* =================================================================
+               TOAST & DYNAMIC ISLAND
+               ================================================================= */
+            function showToast(msg, type) {
+                const el = $('iosToast');
+                const dot = $('toastDot');
+                const text = $('toastMsg');
+                if (!el || !text) return;
+
+                text.textContent = msg;
+                const colors = { info: 'var(--theme-accent)', success: '#30D158', warn: '#FF9F0A', error: '#FF453A' };
+                if (dot) dot.style.background = colors[type] || colors.info;
+
+                el.classList.add('show');
+                clearTimeout(toastTimer);
+                toastTimer = setTimeout(() => el.classList.remove('show'), 2400);
+            }
+
+            function setIsland(mode, text) {
+                const island = $('dynamicIsland');
+                const dot = $('islandDot');
+                const label = $('islandLabel');
+                if (!island || !dot || !label) return;
+
+                island.classList.toggle('expanded', mode !== 'idle');
+                dot.className = 'island-dot' + (mode !== 'idle' ? ' ' + mode : '');
+                label.textContent = text;
+            }
+
+            /* =================================================================
+               CLOCK & ALARM SCHEDULER
+               ================================================================= */
+            function setDefaultAlarmInput() {
+                const d = new Date();
+                d.setMinutes(d.getMinutes() + 10);
+                const hh = String(d.getHours()).padStart(2, '0');
+                const mm = String(d.getMinutes()).padStart(2, '0');
+                alarmTimeStr = hh + ':' + mm;
+                if ($('alarmTimeInput')) $('alarmTimeInput').value = alarmTimeStr;
+            }
+
+            function bumpAlarm(mins) {
+                const d = new Date();
+                d.setMinutes(d.getMinutes() + mins);
+                const val = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+                if ($('alarmTimeInput')) $('alarmTimeInput').value = val;
+                alarmTimeStr = val;
+                showToast('Alarm time set to +' + mins + 'm (' + val + ')', 'info');
+            }
+
+            function formatMMSS(sec) {
+                const s = Math.max(0, sec);
+                return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+            }
+
+            function updateClock() {
+                const now = new Date();
+                let h = now.getHours();
+                const m = String(now.getMinutes()).padStart(2, '0');
+                const s = String(now.getSeconds()).padStart(2, '0');
+                let ampm = '24H';
+                if (!is24Hour) {
+                    ampm = h >= 12 ? 'PM' : 'AM';
+                    h = h % 12 || 12;
+                }
+                const hm = String(h).padStart(2, '0') + ':' + m;
+
+                if ($('clockDate')) {
+                    $('clockDate').textContent = now.toLocaleDateString('en-US', {
+                        weekday: 'long', month: 'short', day: 'numeric'
+                    });
+                }
+                if ($('clockHM')) $('clockHM').textContent = hm;
+                if ($('clockSec')) $('clockSec').textContent = s;
+                if ($('clockAmPm')) $('clockAmPm').textContent = ampm;
+                if ($('standbyTime')) $('standbyTime').textContent = hm;
+
+                if (isArmed && !isRinging && alarmTimeStr) {
+                    updateCountdown(now);
+                    const currentHHMM = String(now.getHours()).padStart(2, '0') + ':' + m;
+                    if (currentHHMM === alarmTimeStr && now.getSeconds() === 0) {
+                        launchGauntlet();
+                    }
+                }
+            }
+
+            function updateCountdown(now) {
+                const parts = alarmTimeStr.split(':').map(Number);
+                if (parts.length !== 2) return;
+                const target = new Date(now);
+                target.setHours(parts[0], parts[1], 0, 0);
+                if (target <= now) target.setDate(target.getDate() + 1);
+                const diff = Math.max(0, Math.floor((target - now) / 1000));
+                const h = Math.floor(diff / 3600);
+                const m = Math.floor((diff % 3600) / 60);
+                const s = diff % 60;
+                if ($('countdownVal')) $('countdownVal').textContent = h + 'h ' + m + 'm ' + s + 's';
+            }
+
+            /* =================================================================
+               DIFFICULTY PROFILES (NORMAL vs BRUTAL)
+               ================================================================= */
+            function setDifficulty(mode) {
+                difficulty = mode === 'brutal' ? 'brutal' : 'normal';
+                renderProfileUI();
+                if (isArmed) {
+                    setIsland(difficulty === 'brutal' ? 'brutal' : 'armed',
+                        (difficulty === 'brutal' ? 'BRUTAL • ' : 'ARMED • ') + alarmTimeStr);
+                }
+            }
+
+            function renderProfileUI() {
+                const seg = $('difficultySeg');
+                const sub = $('profileSubtitle');
+                const list = $('gateChecklist');
+
+                if (difficulty === 'brutal') {
+                    document.body.classList.add('mode-brutal');
+                    if (seg) seg.classList.add('brutal-active');
+                    if (sub) {
+                        sub.textContent = 'Cannot-Miss • 5 Anti-Snooze Locks';
+                        sub.style.color = '#FF453A';
+                    }
+                    if (list) {
+                        list.innerHTML =
+                            '<div class="gate-item"><span style="color:#FF453A;">●</span> Light / Tap 25×</div>' +
+                            '<div class="gate-item"><span style="color:#FF453A;">●</span> Voice / Word Tap</div>' +
+                            '<div class="gate-item"><span style="color:#FF453A;">●</span> 2× Math + 3s 2FA</div>' +
+                            '<div class="gate-item"><span style="color:#FF453A;">●</span> No Snooze + 5m Check</div>';
+                    }
+                } else {
+                    document.body.classList.remove('mode-brutal');
+                    if (seg) seg.classList.remove('brutal-active');
+                    if (sub) {
+                        sub.textContent = 'Regular Days • Math + 2FA';
+                        sub.style.color = 'var(--theme-accent)';
+                    }
+                    if (list) {
+                        list.innerHTML =
+                            '<div class="gate-item"><span style="color:var(--theme-accent);">●</span> 1× Math Keypad</div>' +
+                            '<div class="gate-item"><span style="color:var(--theme-accent);">●</span> 1.5s Hold 2FA</div>' +
+                            '<div class="gate-item"><span style="color:#30D158;">●</span> Digital Chime</div>' +
+                            '<div class="gate-item"><span style="color:#FF9F0A;">●</span> Dodging Snooze (+20)</div>';
+                    }
+                }
+            }
+
+            /* =================================================================
+               iOS SHORTCUTS BRIDGE (URL AUTO-TRIGGER & FIRST-TAP AUDIO ARM)
+               ================================================================= */
+            function getBridgeBaseUrl() {
+                try {
+                    if (window.location && window.location.protocol && window.location.protocol.startsWith('http')) {
+                        return window.location.origin + window.location.pathname;
+                    }
+                } catch (e) {}
+                return 'https://YOUR-USERNAME.github.io/2fa-alarm/';
+            }
+
+            function getBridgeUrl(mode) {
+                return getBridgeBaseUrl() + '?trigger=' + mode;
+            }
+
+            function refreshBridgeUrls() {
+                if ($('normalBridgeUrl')) $('normalBridgeUrl').textContent = getBridgeUrl('normal');
+                if ($('brutalBridgeUrl')) $('brutalBridgeUrl').textContent = getBridgeUrl('brutal');
+            }
+
+            function copyTextWithFallback(text, label) {
+                let copied = false;
+                try {
+                    const ta = document.createElement('textarea');
+                    ta.value = text;
+                    ta.setAttribute('readonly', '');
+                    ta.style.position = 'fixed';
+                    ta.style.left = '-9999px';
+                    ta.style.top = '0';
+                    document.body.appendChild(ta);
+                    ta.focus();
+                    ta.select();
+                    copied = document.execCommand('copy');
+                    document.body.removeChild(ta);
+                } catch (e) {
+                    copied = false;
+                }
+
+                if (copied) {
+                    showToast(label + ' copied!', 'success');
+                } else {
+                    showToast('Select & copy URL: ' + text, 'warn');
+                }
+            }
+
+            function checkShortcutURLParams() {
+                try {
+                    const params = new URLSearchParams(window.location.search || '');
+                    const trigger = (params.get('trigger') || '').toLowerCase();
+                    const mode = (params.get('mode') || '').toLowerCase();
+                    const autostart = params.get('autostart');
+
+                    if (trigger === 'brutal' || trigger === 'normal') {
+                        launchShortcutBridge(trigger, false);
+                    } else if ((mode === 'brutal' || mode === 'normal') && autostart === '1') {
+                        launchShortcutBridge(mode, false);
+                    }
+                } catch (e) {}
+            }
+
+            function launchShortcutBridge(mode, simulateSuspended) {
+                setDifficulty(mode === 'brutal' ? 'brutal' : 'normal');
+                requestWakeLock();
+                launchGauntlet(simulateSuspended);
+
+                const audioSuspended = simulateSuspended || !audioCtx || audioCtx.state !== 'running';
+                if (audioSuspended) {
+                    armShortcutFirstTapAudio();
+                } else {
+                    hideShortcutAudioBanner();
+                }
+            }
+
+            function armShortcutFirstTapAudio() {
+                const banner = $('shortcutAudioBanner');
+                if (banner) banner.classList.remove('hidden');
+                if ($('audioStatusPill')) $('audioStatusPill').textContent = '🔇 Tap to Arm Audio';
+
+                detachShortcutFirstTapAudio();
+                bridgeUnlockHandler = function () {
+                    unlockAudio();
+                    startAlarmAudio();
+                    hideShortcutAudioBanner();
+                    showToast('Audio armed at full volume!', 'error');
+                    detachShortcutFirstTapAudio();
+                };
+
+                document.addEventListener('pointerdown', bridgeUnlockHandler, { capture: true, once: true });
+                document.addEventListener('touchstart', bridgeUnlockHandler, { capture: true, once: true });
+            }
+
+            function detachShortcutFirstTapAudio() {
+                if (bridgeUnlockHandler) {
+                    document.removeEventListener('pointerdown', bridgeUnlockHandler, { capture: true });
+                    document.removeEventListener('touchstart', bridgeUnlockHandler, { capture: true });
+                    bridgeUnlockHandler = null;
+                }
+            }
+
+            function hideShortcutAudioBanner() {
+                const banner = $('shortcutAudioBanner');
+                if (banner) banner.classList.add('hidden');
+            }
+
+            /* =================================================================
+               ALARM GAUNTLET FLOW
+               ================================================================= */
+            function startTestAlarm(mode) {
+                setDifficulty(mode);
+                unlockAudio();
+                requestWakeLock();
+                launchGauntlet(false);
+            }
+
+            function launchGauntlet(deferAudio) {
+                exitStandBy();
+                isRinging = true;
+                ringStartTs = Date.now();
+                sessionFails = 0;
+                snoozeDodges = 0;
+
+                if (!deferAudio) {
+                    hideShortcutAudioBanner();
+                    startAlarmAudio();
+                } else {
+                    stopAlarmAudio();
+                }
+                $('gauntletOverlay').classList.remove('hidden');
+
+                const snoozeBtn = $('snoozeBtn');
+                snoozeBtn.style.position = 'static';
+                snoozeBtn.style.left = '';
+                snoozeBtn.style.top = '';
+                snoozeBtn.style.zIndex = '';
+
+                const badge = $('gauntletModeBadge');
+                if (difficulty === 'brutal') {
+                    badge.textContent = 'BRUTAL GAUNTLET';
+                    badge.style.color = '#FF453A';
+                    badge.style.borderColor = '#FF453A';
+                    snoozeBtn.classList.add('hidden');
+                    stages = ['light', 'voice', 'math', '2fa'];
+                    mathTotal = 2;
+                    holdRequiredMs = 3000;
+                    setIsland('ringing', 'BRUTAL RINGING');
+                } else {
+                    badge.textContent = 'NORMAL ALARM';
+                    badge.style.color = 'var(--theme-accent)';
+                    badge.style.borderColor = 'var(--theme-accent)';
+                    snoozeBtn.classList.remove('hidden');
+                    stages = ['math', '2fa'];
+                    mathTotal = 1;
+                    holdRequiredMs = 1500;
+                    setIsland('ringing', 'ALARM RINGING');
+                }
+
+                stageIndex = 0;
+                loadStage();
+            }
+
+            function loadStage() {
+                ['stageLight', 'stageVoice', 'stageMath', 'stage2FA'].forEach((id) => {
+                    $(id).classList.add('hidden');
+                });
+
+                const bars = $('stepBars');
+                bars.innerHTML = '';
+                stages.forEach((_, i) => {
+                    const d = document.createElement('div');
+                    d.className = 'step-bar' + (i < stageIndex ? ' done' : i === stageIndex ? ' active' : '');
+                    bars.appendChild(d);
+                });
+
+                const s = stages[stageIndex];
+                if (s === 'light') startLightStage();
+                else if (s === 'voice') startVoiceStage();
+                else if (s === 'math') startMathStage();
+                else if (s === '2fa') start2FAStage();
+            }
+
+            function advanceStage() {
+                stageIndex++;
+                if (stageIndex >= stages.length) finishGauntlet();
+                else loadStage();
+            }
+
+            /* =================================================================
+               DODGING SNOOZE BUTTON (NORMAL MODE)
+               ================================================================= */
+            function dodgeSnooze() {
+                const btn = $('snoozeBtn');
+                const screen = $('iphoneScreen');
+                const maxX = Math.max(40, screen.clientWidth - 120);
+                const maxY = Math.max(150, screen.clientHeight - 160);
+                btn.style.position = 'absolute';
+                btn.style.left = (20 + Math.floor(Math.random() * (maxX - 20))) + 'px';
+                btn.style.top = (95 + Math.floor(Math.random() * (maxY - 95))) + 'px';
+                btn.style.zIndex = '85';
+            }
+
+            function onSnoozeHover() {
+                if (difficulty === 'normal' && snoozeDodges < 3) {
+                    snoozeDodges++;
+                    dodgeSnooze();
+                }
+            }
+
+            function onSnoozeClick(e) {
+                e.preventDefault();
+                if (difficulty !== 'normal') return;
+                if (snoozeDodges < 3) {
+                    snoozeDodges++;
+                    dodgeSnooze();
+                    showToast('Snooze dodged! (' + snoozeDodges + '/3)', 'warn');
+                    return;
+                }
+                stopAlarmAudio();
+                cleanupGauntlet();
+                isRinging = false;
+                $('gauntletOverlay').classList.add('hidden');
+
+                stats.pushups += 20;
+                saveStats();
+                bumpAlarm(2);
+                isArmed = true;
+                renderArmedUI();
+                setIsland('armed', 'SNOOZE • ' + alarmTimeStr);
+                showToast('Snoozed 2m • +20 Pushups penalty added!', 'error');
+            }
+
+            /* =================================================================
+               BRUTAL STAGE 1: LIGHT CHECK + RAPID-TAP / SHAKE FALLBACK
+               ================================================================= */
+            function startLightStage() {
+                $('gauntletStageHeading').textContent = 'Step 1: Room Light-Check';
+                $('stageLight').classList.remove('hidden');
+                brightHits = 0;
+                fallbackLeft = 25;
+                $('fallbackLeftBadge').textContent = '25 left';
+                $('lumaPct').textContent = '0%';
+                $('lumaBar').style.width = '0%';
+                $('lightPassBtn').disabled = true;
+                startCamera();
+            }
+
+            async function startCamera() {
+                const video = $('camVideo');
+                const ph = $('camPlaceholder');
+                const st = $('camStatusText');
+                ph.classList.remove('hidden');
+                st.textContent = 'Starting camera...';
+
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    st.textContent = 'Camera unavailable — use Rapid-Tap 25× below.';
+                    return;
+                }
+                try {
+                    camStream = await navigator.mediaDevices.getUserMedia({
+                        video: { facingMode: { ideal: 'environment' }, width: { ideal: 160 }, height: { ideal: 120 } },
+                        audio: false
+                    });
+                    video.srcObject = camStream;
+                    await video.play().catch(() => {});
+                    ph.classList.add('hidden');
+
+                    clearInterval(camPollTimer);
+                    camPollTimer = setInterval(measureLuma, 300);
+                } catch (e) {
+                    st.textContent = 'Camera denied — use Rapid-Tap 25× or Shake below.';
+                }
+            }
+
+            function measureLuma() {
+                try {
+                    const video = $('camVideo');
+                    const canvas = $('camCanvas');
+                    if (!video || !camStream || video.readyState < 2) return;
+                    canvas.width = 64;
+                    canvas.height = 48;
+                    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+                    ctx.drawImage(video, 0, 0, 64, 48);
+                    const d = ctx.getImageData(0, 0, 64, 48).data;
+                    let sum = 0;
+                    for (let i = 0; i < d.length; i += 4) {
+                        sum += 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+                    }
+                    const pct = Math.min(100, Math.round((sum / (64 * 48) / 255) * 100));
+                    $('lumaPct').textContent = pct + '%';
+                    $('lumaBar').style.width = pct + '%';
+
+                    if (pct >= 45) {
+                        brightHits++;
+                        $('lumaBar').style.background = '#30D158';
+                        $('lightPassBtn').disabled = false;
+                        if (brightHits >= 4) completeLightStage();
+                    } else {
+                        brightHits = 0;
+                        $('lumaBar').style.background = '#FFD60A';
+                    }
+                } catch (e) {}
+            }
+
+            async function enableShakeFallback() {
+                try {
+                    if (typeof DeviceMotionEvent === 'undefined') {
+                        showToast('Shake unavailable — use Rapid Tap!', 'warn');
+                        return;
+                    }
+                    if (typeof DeviceMotionEvent.requestPermission === 'function') {
+                        const res = await DeviceMotionEvent.requestPermission();
+                        if (res !== 'granted') {
+                            showToast('Motion denied — use Rapid Tap!', 'warn');
+                            return;
+                        }
+                    }
+                    if (!shakeBound) {
+                        window.addEventListener('devicemotion', onShakeMotion);
+                        shakeBound = true;
+                    }
+                    $('enableShakeBtn').textContent = 'Shake Active!';
+                    showToast('Shake your phone vigorously!', 'success');
+                } catch (e) {
+                    showToast('Use Rapid Tap 25×!', 'info');
+                }
+            }
+
+            function onShakeMotion(e) {
+                const a = e.accelerationIncludingGravity;
+                if (!a) return;
+                const mag = Math.sqrt((a.x || 0) ** 2 + (a.y || 0) ** 2 + (a.z || 0) ** 2);
+                const now = Date.now();
+                if (mag > 20 && now - lastShakeTs > 160) {
+                    lastShakeTs = now;
+                    registerFallbackHit();
+                }
+            }
+
+            function registerFallbackHit() {
+                fallbackLeft = Math.max(0, fallbackLeft - 1);
+                $('fallbackLeftBadge').textContent = fallbackLeft + ' left';
+                if (fallbackLeft <= 0) completeLightStage();
+            }
+
+            function stopLightResources() {
+                clearInterval(camPollTimer);
+                camPollTimer = null;
+                if (camStream) {
+                    camStream.getTracks().forEach((t) => t.stop());
+                    camStream = null;
+                }
+                if (shakeBound) {
+                    window.removeEventListener('devicemotion', onShakeMotion);
+                    shakeBound = false;
+                }
+            }
+
+            function completeLightStage() {
+                stopLightResources();
+                showToast('Light-Check cleared!', 'success');
+                advanceStage();
+            }
+
+            /* =================================================================
+               BRUTAL STAGE 2: VOICE VERIFICATION + TAP WORDS FALLBACK
+               ================================================================= */
+            function startVoiceStage() {
+                $('gauntletStageHeading').textContent = 'Step 2: Voice Verification';
+                $('stageVoice').classList.remove('hidden');
+                activePhrase = PHRASES[Math.floor(Math.random() * PHRASES.length)];
+                $('voiceTargetBox').textContent = '"' + activePhrase + '"';
+                $('voiceHeardBox').textContent = 'Waiting for speech...';
+                setupWordFallback();
+            }
+
+            function setupWordFallback() {
+                phraseWords = activePhrase.split(' ');
+                tappedWords = [];
+                $('wordProgress').textContent = 'Tap words in exact order...';
+                const wrap = $('wordChipsWrap');
+                wrap.innerHTML = '';
+                const shuffled = phraseWords.slice().sort(() => Math.random() - 0.5);
+                shuffled.forEach((word) => {
+                    const b = document.createElement('button');
+                    b.type = 'button';
+                    b.className = 'word-chip';
+                    b.textContent = word;
+                    b.addEventListener('click', () => {
+                        const expected = phraseWords[tappedWords.length];
+                        if (word === expected) {
+                            tappedWords.push(word);
+                            b.disabled = true;
+                            b.classList.add('used');
+                            $('wordProgress').textContent = tappedWords.join(' ');
+                            if (tappedWords.length === phraseWords.length) completeVoiceStage();
+                        } else {
+                            sessionFails++;
+                            showToast('Next word is "' + expected + '"', 'warn');
+                        }
+                    });
+                    wrap.appendChild(b);
+                });
+            }
+
+            function toggleSpeech() {
+                const Ctor = window.SpeechRecognition || window.webkitSpeechRecognition;
+                if (!Ctor) {
+                    showToast('Speech API unavailable — tap words below!', 'warn');
+                    return;
+                }
+                if (isListening && speechRec) {
+                    try { speechRec.stop(); } catch (e) {}
+                    return;
+                }
+                try {
+                    speechRec = new Ctor();
+                    speechRec.lang = 'en-US';
+                    speechRec.interimResults = true;
+                    speechRec.onstart = () => {
+                        isListening = true;
+                        $('micBtn').textContent = '🎙 Listening... Speak Now!';
+                    };
+                    speechRec.onresult = (e) => {
+                        const spoken = Array.from(e.results).map((r) => r[0].transcript).join(' ').trim();
+                        $('voiceHeardBox').textContent = '"' + spoken + '"';
+                        const low = spoken.toLowerCase();
+                        const hits = phraseWords.filter((w) => low.includes(w.toLowerCase())).length;
+                        if (hits >= Math.ceil(phraseWords.length * 0.65)) {
+                            try { speechRec.stop(); } catch (err) {}
+                            completeVoiceStage();
+                        }
+                    };
+                    speechRec.onerror = () => {
+                        isListening = false;
+                        $('micBtn').textContent = '🎙 Tap to Speak Phrase';
+                        showToast('Mic error — use Tap Words below', 'warn');
+                    };
+                    speechRec.onend = () => {
+                        isListening = false;
+                        $('micBtn').textContent = '🎙 Tap to Speak Phrase';
+                    };
+                    speechRec.start();
+                } catch (e) {
+                    showToast('Use Tap Words fallback below', 'warn');
+                }
+            }
+
+            function stopVoiceResources() {
+                if (speechRec) {
+                    try { speechRec.stop(); } catch (e) {}
+                    speechRec = null;
+                }
+                isListening = false;
+            }
+
+            function completeVoiceStage() {
+                stopVoiceResources();
+                showToast('Voice verified!', 'success');
+                advanceStage();
+            }
+
+            /* =================================================================
+               CUSTOM CIRCULAR iOS KEYPAD BUILDER
+               ================================================================= */
+            function buildIOSKeypad(mountId, onDigit, onClear, onBackspace, onSubmit) {
+                const mount = $(mountId);
+                mount.innerHTML = '';
+
+                const grid = document.createElement('div');
+                grid.className = 'keypad-grid';
+
+                ['1','2','3','4','5','6','7','8','9'].forEach((d) => {
+                    const b = document.createElement('button');
+                    b.type = 'button';
+                    b.className = 'ios-key';
+                    b.textContent = d;
+                    b.addEventListener('click', () => onDigit(d));
+                    grid.appendChild(b);
+                });
+
+                const clr = document.createElement('button');
+                clr.type = 'button';
+                clr.className = 'ios-key fn';
+                clr.textContent = 'Clear';
+                clr.addEventListener('click', onClear);
+                grid.appendChild(clr);
+
+                const zero = document.createElement('button');
+                zero.type = 'button';
+                zero.className = 'ios-key';
+                zero.textContent = '0';
+                zero.addEventListener('click', () => onDigit('0'));
+                grid.appendChild(zero);
+
+                const back = document.createElement('button');
+                back.type = 'button';
+                back.className = 'ios-key fn';
+                back.textContent = '⌫';
+                back.addEventListener('click', onBackspace);
+                grid.appendChild(back);
+
+                mount.appendChild(grid);
+
+                if (onSubmit) {
+                    const sub = document.createElement('button');
+                    sub.type = 'button';
+                    sub.className = 'btn-primary';
+                    sub.style.maxWidth = '240px';
+                    sub.style.minHeight = '44px';
+                    sub.textContent = 'Submit Answer';
+                    sub.addEventListener('click', onSubmit);
+                    mount.appendChild(sub);
+                }
+            }
+
+            /* =================================================================
+               MATH STAGE
+               ================================================================= */
+            function startMathStage() {
+                $('gauntletStageHeading').textContent = difficulty === 'brutal' ? 'Step 3: Double Math Lock' : 'Step 1: Math Lock';
+                $('stageMath').classList.remove('hidden');
+                mathNum = 1;
+                buildIOSKeypad(
+                    'mathKeypadMount',
+                    (d) => { if (mathBuffer.length < 4) { mathBuffer += d; renderMathDisplay(); } },
+                    () => { mathBuffer = ''; renderMathDisplay(); },
+                    () => { mathBuffer = mathBuffer.slice(0, -1); renderMathDisplay(); },
+                    checkMath
+                );
+                nextMathQuestion();
+            }
+
+            function nextMathQuestion() {
+                mathBuffer = '';
+                renderMathDisplay();
+                $('mathErrorMsg').textContent = '';
+                $('mathStepTag').textContent = 'Problem ' + mathNum + ' of ' + mathTotal;
+
+                if (difficulty === 'brutal') {
+                    const a = Math.floor(Math.random() * 8) + 6;
+                    const b = Math.floor(Math.random() * 6) + 3;
+                    const c = Math.floor(Math.random() * 14) + 5;
+                    mathAnswer = a * b + c;
+                    $('mathQuestion').textContent = '(' + a + ' × ' + b + ') + ' + c + ' = ?';
+                } else {
+                    const a = Math.floor(Math.random() * 40) + 16;
+                    const b = Math.floor(Math.random() * 32) + 11;
+                    mathAnswer = a + b;
+                    $('mathQuestion').textContent = a + ' + ' + b + ' = ?';
+                }
+            }
+
+            function renderMathDisplay() {
+                const el = $('mathDisplay');
+                if (!mathBuffer) el.innerHTML = '<span style="font-size:13px;color:var(--text-muted);font-weight:500;">Enter answer below</span>';
+                else el.textContent = mathBuffer;
+            }
+
+            function checkMath() {
+                if (!mathBuffer) return;
+                if (parseInt(mathBuffer, 10) === mathAnswer) {
+                    if (mathNum < mathTotal) {
+                        mathNum++;
+                        showToast('Correct! Solve problem 2...', 'success');
+                        nextMathQuestion();
+                    } else {
+                        showToast('Math verified!', 'success');
+                        advanceStage();
+                    }
+                } else {
+                    sessionFails++;
+                    $('mathErrorMsg').textContent = 'Wrong answer — try again!';
+                    const box = $('mathDisplay');
+                    box.classList.remove('animate-shake');
+                    void box.offsetWidth;
+                    box.classList.add('animate-shake');
+                    mathBuffer = '';
+                    renderMathDisplay();
+                }
+            }
+
+            /* =================================================================
+               2FA HOLD-TO-REVEAL & TOTP STAGE
+               ================================================================= */
+            function start2FAStage() {
+                $('gauntletStageHeading').textContent = difficulty === 'brutal' ? 'Step 4: High-Security 2FA' : 'Step 2: 2FA Authenticator';
+                $('stage2FA').classList.remove('hidden');
+                otpBuffer = '';
+                otpUnlocked = false;
+                $('otpCodeText').classList.add('blurred');
+                $('holdBtnText').textContent = 'Hold ' + (holdRequiredMs / 1000).toFixed(1) + 's to Reveal Code';
+                $('holdRingCircle').style.strokeDashoffset = '69.115';
+                $('otpErrorMsg').textContent = '';
+
+                buildIOSKeypad(
+                    'otpKeypadMount',
+                    (d) => {
+                        if (otpBuffer.length < 6) {
+                            otpBuffer += d;
+                            renderOTPSlots();
+                            if (otpBuffer.length === 6) setTimeout(verifyOTP, 110);
+                        }
+                    },
+                    () => { otpBuffer = ''; renderOTPSlots(); },
+                    () => { otpBuffer = otpBuffer.slice(0, -1); renderOTPSlots(); },
+                    null
+                );
+
+                renderOTPSlots();
+                rotateOTP();
+                startOTPTimer();
+            }
+
+            function rotateOTP() {
+                currentOTP = String(Math.floor(100000 + Math.random() * 900000));
+                $('otpCodeText').textContent = currentOTP.slice(0, 3) + ' ' + currentOTP.slice(3);
+            }
+
+            function startOTPTimer() {
+                clearInterval(otpTimer);
+                otpLeft = otpDuration;
+                updateOTPBar();
+                otpTimer = setInterval(() => {
+                    otpLeft--;
+                    if (otpLeft <= 0) {
+                        rotateOTP();
+                        otpLeft = otpDuration;
+                        otpBuffer = '';
+                        renderOTPSlots();
+                        $('otpErrorMsg').textContent = 'Code rotated — enter new 6 digits';
+                    }
+                    updateOTPBar();
+                }, 1000);
+            }
+
+            function updateOTPBar() {
+                $('otpTimerLabel').textContent = otpLeft + 's';
+                const bar = $('otpCountdownBar');
+                bar.style.width = ((otpLeft / otpDuration) * 100) + '%';
+                bar.style.background = otpLeft <= 6 ? '#FF453A' : '#32ADE6';
+            }
+
+            function bindHoldReveal() {
+                const btn = $('holdRevealBtn');
+                if (!btn) return;
+                btn.addEventListener('contextmenu', (e) => e.preventDefault());
+
+                const startHold = (e) => {
+                    e.preventDefault();
+                    if (otpUnlocked) return;
+                    holdStartTs = performance.now();
+                    cancelAnimationFrame(holdRaf);
+
+                    const tick = (now) => {
+                        const ratio = Math.min(1, (now - holdStartTs) / holdRequiredMs);
+                        const circ = 69.115;
+                        $('holdRingCircle').style.strokeDashoffset = String(circ * (1 - ratio));
+                        if (ratio >= 1) {
+                            otpUnlocked = true;
+                            $('otpCodeText').classList.remove('blurred');
+                            $('holdBtnText').textContent = '2FA Code Unlocked ✓';
+                        } else {
+                            holdRaf = requestAnimationFrame(tick);
+                        }
+                    };
+                    holdRaf = requestAnimationFrame(tick);
+                };
+
+                const cancelHold = (e) => {
+                    if (e) e.preventDefault();
+                    if (otpUnlocked) return;
+                    cancelAnimationFrame(holdRaf);
+                    $('holdRingCircle').style.strokeDashoffset = '69.115';
+                };
+
+                btn.addEventListener('pointerdown', startHold);
+                btn.addEventListener('pointerup', cancelHold);
+                btn.addEventListener('pointerleave', cancelHold);
+                btn.addEventListener('pointercancel', cancelHold);
+            }
+
+            function renderOTPSlots() {
+                const slots = document.querySelectorAll('#otpSlotsWrap .otp-slot');
+                slots.forEach((el, i) => {
+                    const ch = otpBuffer[i] || '';
+                    el.textContent = ch;
+                    el.classList.toggle('filled', !!ch);
+                });
+            }
+
+            function verifyOTP() {
+                if (otpBuffer === currentOTP) {
+                    clearInterval(otpTimer);
+                    advanceStage();
+                } else {
+                    sessionFails++;
+                    $('otpErrorMsg').textContent = 'Incorrect 2FA code — try again!';
+                    const wrap = $('otpSlotsWrap');
+                    wrap.classList.remove('animate-shake');
+                    void wrap.offsetWidth;
+                    wrap.classList.add('animate-shake');
+                    otpBuffer = '';
+                    renderOTPSlots();
+                }
+            }
+
+            function cleanupGauntlet() {
+                stopLightResources();
+                stopVoiceResources();
+                detachShortcutFirstTapAudio();
+                hideShortcutAudioBanner();
+                clearInterval(otpTimer);
+                cancelAnimationFrame(holdRaf);
+            }
+
+            /* =================================================================
+               FINISH GAUNTLET, 5-MIN ANTI-RELAPSE & VICTORY SUMMARY
+               ================================================================= */
+            function finishGauntlet() {
+                stopAlarmAudio();
+                cleanupGauntlet();
+                isRinging = false;
+                isArmed = false;
+                releaseWakeLock();
+                renderArmedUI();
+                $('gauntletOverlay').classList.add('hidden');
+
+                const elapsed = ((Date.now() - ringStartTs) / 1000).toFixed(1) + 's';
+                stats.streak += 1;
+                stats.lastTime = elapsed;
+                stats.lastMode = difficulty === 'brutal' ? 'Brutal Mode' : 'Normal Mode';
+                stats.lastFails = sessionFails;
+                saveStats();
+
+                if (difficulty === 'brutal') {
+                    startRelapseWatch();
+                } else {
+                    setIsland('idle', '2FA Alarm');
+                }
+
+                openSummary(true);
+            }
+
+            function startRelapseWatch() {
+                clearInterval(relapseWatchTimer);
+                relapseSecLeft = 300;
+                $('relapseBanner').classList.remove('hidden');
+                updateRelapseUI();
+
+                relapseWatchTimer = setInterval(() => {
+                    relapseSecLeft--;
+                    updateRelapseUI();
+                    if (relapseSecLeft <= 0) {
+                        clearInterval(relapseWatchTimer);
+                        openRelapsePrompt();
+                    }
+                }, 1000);
+            }
+
+            function updateRelapseUI() {
+                const txt = formatMMSS(relapseSecLeft);
+                $('relapseCountdownText').textContent = txt;
+                setIsland('relapse', 'CHECK • ' + txt);
+            }
+
+            function openRelapsePrompt() {
+                $('relapseBanner').classList.add('hidden');
+                $('relapseModal').classList.remove('hidden');
+                relapseAlertSec = 15;
+                $('relapseAlertSec').textContent = String(relapseAlertSec);
+                setIsland('ringing', 'STILL AWAKE?');
+
+                unlockAudio();
+                playTone(1300, 0.28, 'sawtooth', 0.25);
+
+                clearInterval(relapseAlertTimer);
+                relapseAlertTimer = setInterval(() => {
+                    relapseAlertSec--;
+                    $('relapseAlertSec').textContent = String(relapseAlertSec);
+                    playTone(1100, 0.14, 'square', 0.22);
+                    if (relapseAlertSec <= 0) {
+                        clearInterval(relapseAlertTimer);
+                        $('relapseModal').classList.add('hidden');
+                        showToast('Missed Relapse Check! Restarting Brutal Alarm!', 'error');
+                        launchGauntlet();
+                    }
+                }, 1000);
+            }
+
+            function confirmStillAwake() {
+                clearInterval(relapseAlertTimer);
+                relapseSecLeft = 0;
+                $('relapseModal').classList.add('hidden');
+                $('relapseBanner').classList.add('hidden');
+                setIsland('idle', '2FA Alarm');
+                showToast('Relapse check passed! You are officially awake.', 'success');
+            }
+
+            function openSummary(justWoke) {
+                $('summaryTitle').textContent = justWoke ? 'Good Morning! 2FA Cleared' : 'Wake Discipline Stats';
+                $('summarySubtitle').textContent = justWoke
+                    ? (difficulty === 'brutal' ? '5-minute Still Awake? watch is now running.' : 'Alarm silenced. Have a great day!')
+                    : 'Saved locally on your iPhone';
+
+                $('sumTime').textContent = stats.lastTime;
+                $('sumMode').textContent = stats.lastMode;
+                $('sumFails').textContent = String(stats.lastFails);
+                $('sumStreak').textContent = stats.streak + (stats.streak === 1 ? ' Day' : ' Days');
+                $('sumPushups').textContent = '+' + stats.pushups + ' Pushups';
+                $('clearDebtBtn').classList.toggle('hidden', stats.pushups <= 0);
+                $('summaryModal').classList.remove('hidden');
+            }
+
+            function closeSummary() {
+                $('summaryModal').classList.add('hidden');
+            }
+        })();
+    </script>
+</body>
+</html>
